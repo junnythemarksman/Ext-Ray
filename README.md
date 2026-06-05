@@ -25,7 +25,173 @@ re-scans on a timer and on install events, and notifies you when an extension is
 installed or **silently changes** after install (new permissions, a version bump after
 long stability, or a publisher change).
 
-## Trust posture
+## Architecture
+
+The whole product is **two pure engines** (`scoring`, `snapshot`) wrapped in thin browser
+glue. All real logic is I/O-free and unit-testable; the messy `chrome.*` API surface is
+kept at the edges.
+
+```mermaid
+flowchart TD
+    subgraph UI["UI surfaces"]
+        POP["popup — report & risk cards"]
+        OPT["options — guardian settings"]
+    end
+
+    subgraph BG["background (service worker)"]
+        SW["event + alarm wiring"]
+    end
+
+    subgraph CORE["pure engines — no I/O, unit-tested"]
+        SCORE["scoring — scoreExtension / gradeFleet"]
+        DIFF["snapshot — diff"]
+    end
+
+    STORE["storage — chrome.storage.local wrapper"]
+
+    subgraph EDGE["chrome.* APIs — the only side effects"]
+        MGMT["chrome.management"]
+        ALARM["chrome.alarms"]
+        NOTIF["chrome.notifications"]
+        STG["chrome.storage"]
+    end
+
+    POP --> SCORE
+    POP --> MGMT
+    OPT --> STORE
+    SW --> SCORE
+    SW --> DIFF
+    SW --> STORE
+    SW --> MGMT
+    SW --> ALARM
+    SW --> NOTIF
+    STORE --> STG
+```
+
+## Deployment
+
+Build once with Vite, publish to the stores, run inside the browser. There is **no server
+anywhere in the picture** — Ext-Ray reads other extensions' metadata locally and contacts
+nothing.
+
+```mermaid
+flowchart LR
+    subgraph DEV["Developer machine"]
+        direction TB
+        SRC["TypeScript source"]
+        VITE["Vite build"]
+        DIST["dist/ — MV3 bundle"]
+        SRC --> VITE --> DIST
+    end
+
+    DIST -->|upload| CWS["Chrome Web Store / Edge Add-ons"]
+    CWS -->|"install & auto-update"| BROWSER
+
+    subgraph BROWSER["User's browser — Chrome / Edge"]
+        direction TB
+        EXT["Ext-Ray"]
+        OTHERS["the user's other installed extensions"]
+        EXT -->|"reads metadata via chrome.management"| OTHERS
+    end
+
+    NET["No backend · no accounts · no telemetry"]
+    EXT -. "nothing leaves the device" .-> NET
+```
+
+## Data flow
+
+### On-demand audit (the popup)
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Popup as popup
+    participant Mgmt as chrome.management
+    participant Score as scoring engine
+
+    User->>Popup: open Ext-Ray
+    Popup->>Mgmt: getAll()
+    Mgmt-->>Popup: installed extensions
+    loop for each extension
+        Popup->>Score: scoreExtension(info)
+        Score-->>Popup: tier + reasons
+    end
+    Popup->>Score: gradeFleet(verdicts)
+    Score-->>Popup: overall grade (A–F)
+    Popup-->>User: grade + risk cards, worst first
+    User->>Popup: click Disable / Remove
+    Popup->>Mgmt: setEnabled() / uninstall()
+    Note over Popup,Mgmt: uninstall shows Chrome's native confirm dialog
+```
+
+### Background guardian (continuous monitoring)
+
+```mermaid
+sequenceDiagram
+    participant Trig as Trigger
+    participant SW as Service worker
+    participant Mgmt as chrome.management
+    participant Store as Storage
+    participant Diff as Diff engine
+    participant Notif as chrome.notifications
+
+    Trig->>SW: install event or alarm tick
+    SW->>Mgmt: getAll()
+    Mgmt-->>SW: current extensions
+    SW->>Store: load previous snapshot
+    Store-->>SW: previous snapshot
+    SW->>Diff: diff(previous, current)
+    Diff-->>SW: changes[]
+    alt meaningful change found
+        SW->>Notif: notify the user
+    else nothing changed
+        SW-->>SW: stay silent
+    end
+    SW->>Store: persist new snapshot
+```
+
+### What counts as a "meaningful change"
+
+The guardian deliberately fires on **any silent change after install**, not just new
+permissions — because the largest 2024–25 attacks added _no_ new permissions and instead
+weaponized already-trusted extensions via an update.
+
+```mermaid
+flowchart TD
+    SCAN["re-scan: getAll() + diff vs. last snapshot"] --> Q{"meaningful change?"}
+    Q -->|new extension installed| A["alert: new install"]
+    Q -->|permissions added| B["alert: permission change"]
+    Q -->|"version jump after long stability"| C["alert: suspicious update"]
+    Q -->|"publisher / updateUrl changed"| D["alert: possible ownership change"]
+    Q -->|no change| E["stay silent · update snapshot"]
+```
+
+## Security & trust model
+
+Everything happens on your device, behind the smallest permission footprint that can do
+the job. Ext-Ray is also honest about its limits: it reads what an extension _declares_,
+not what its code _does_.
+
+```mermaid
+flowchart TB
+    subgraph DEVICE["Your device — all processing happens here"]
+        EXT["Ext-Ray"]
+        subgraph PERMS["only 4 permissions — none are host permissions"]
+            P1["management"]
+            P2["storage"]
+            P3["alarms"]
+            P4["notifications"]
+        end
+        CAN["CAN see: declared permissions, install source, version, enabled state"]
+        CANT["CANNOT see: extension code, network or page behavior, your browsing data"]
+        EXT --- PERMS
+        EXT --- CAN
+        EXT --- CANT
+    end
+
+    NET["No backend · no accounts · no telemetry"]
+    EXT -. "no data leaves the device" .-> NET
+```
 
 - Requests exactly **four permissions, none of them host permissions**:
   `management`, `storage`, `alarms`, `notifications`.
