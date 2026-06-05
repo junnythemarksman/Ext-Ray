@@ -1,0 +1,19 @@
+{
+  "name": "ext-ray",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Local-only Chromium (MV3) extension that audits your other extensions' security — on-device, no backend.",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:debug": "EXTRAY_DEBUG=sec.*,perf.*,calc.* vitest run --reporter=verbose",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7",
+    "vitest": "^4.1.8"
+  }
+}

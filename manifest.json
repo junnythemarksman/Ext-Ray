@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Ext-Ray",
+  "version": "0.0.1",
+  "description": "Audit the security of your other browser extensions — entirely on your own device.",
+  "minimum_chrome_version": "120",
+  "permissions": ["management", "storage", "alarms", "notifications"],
+  "background": {
+    "service_worker": "background/index.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup/index.html",
+    "default_title": "Ext-Ray"
+  },
+  "options_page": "options/index.html"
+}
