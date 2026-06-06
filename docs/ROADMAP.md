@@ -15,9 +15,9 @@ flow → §9 testing → §10 distribution). One phase, one coherent slice of th
 | **2 — Pure engines (TDD)** | `scoring/` (`scoreExtension` + `gradeFleet`, owner-endorsed weights) and `snapshot/` (`diff`, 6 Change kinds, first-run invariant) | ✅ |
 | **3 — Persistence (`storage/`)** | Typed `chrome.storage.local` wrapper (local-only by design): last snapshot, settings, per-extension `firstSeen`/`lastVersionChange` timestamps, ignore list; `schemaVersion` + `migrate()` seam | ✅ |
 | **4 — Background guardian** | Service worker: synchronous top-level listeners incl. `onEnabled`/`onDisabled`/`onUninstalled` (**C2**), self-healing alarm, scan → score + diff → notify; **severity classification** (host/match-pattern expansion = high-confidence re-approval signal) + the **"version bump after long stability"** temporal signal; surface `getPermissionWarningsById` browser-authored warnings (**C1** — deferred to Phase 6 display) (spec §5.4, §4.5) | ✅ |
-| **5 — MV3 build pipeline** | Vite multi-entry bundling → loadable `dist/`; wires manifest entry points. *The gate between "passes Vitest" and "loads in a browser."* | ◀ **next** |
-| **6 — Popup report UI** | `getAll()` → score → overall grade + risk cards worst-first, plain-English reasons, Disable/Remove (gated on `mayDisable`), honest-limits disclosure (spec §5.5) | ⬜ |
-| **7 — Options / settings UI** | Toggle monitoring, scan cadence, notification prefs, manage ignore-list (spec §5.6) | ⬜ |
+| **5 — MV3 build pipeline** | Vite multi-entry bundling → loadable `dist/`; wires manifest entry points. *The gate between "passes Vitest" and "loads in a browser."* Ship `icons/icon-128.png` (the guardian's `notifications.create` needs it) and prefer `chrome.runtime.getURL()` for the iconUrl. | ◀ **next** |
+| **6 — Popup report UI** | `getAll()` → score → overall grade + risk cards worst-first, plain-English reasons, Disable/Remove (gated on `mayDisable`), honest-limits disclosure (spec §5.5). Wire `chrome.notifications.onClicked` → open the popup (a basic notification's click is otherwise inert); use `chrome.action.openPopup()` with a report-tab fallback (it has reliability caveats). | ⬜ |
+| **7 — Options / settings UI** | Toggle monitoring, scan cadence, notification prefs, manage ignore-list (spec §5.6). Clamp `scanIntervalMinutes` ≥ 0.5 — Chrome 120+ won't honor a shorter alarm period. | ⬜ |
 | **8 — Integration & in-browser E2E** | Playwright: load unpacked in Chrome/Edge, exercise every control, watch `console.error`/`pageerror`, screenshot on failure. **Deferred Phase-4 guardian robustness cases land here:** (a) service-worker terminal unhandled-rejection if the final queued scan fails; (b) notify-before-persist kill window (could re-notify once); (c) `notifications.create` rejecting when the icon asset is absent. | ⬜ |
 | **9 — Store-listing readiness** | Privacy policy + Limited Use disclosure, first-run screen pre-empting the `management` warning, USPTO trademark check (spec §10) | ⬜ |
 | **10 — On-device AI explanations** *(progressive enhancement, built last)* | Chrome built-in AI (Prompt + Summarizer, Gemini Nano) for local plain-English risk explanations, layered **over C1** with graceful degradation when unavailable; honest disclosure of the one-time model download + hardware gates (**C3**) | ⬜ |
@@ -41,6 +41,7 @@ In-scope but parked until evidence justifies the false-positive cost:
 - Per-axis score decomposition in the report (host breadth as its own axis).
 - "Republished under a new name" identity-churn heuristic.
 - `updateUrl`-anomaly on first scan.
+- Optional `enabled-changed` Change kind — flag a *silent re-enable* of a disabled extension (low signal; enable/disable is normally user-driven, and the guardian already re-scans on `onEnabled`/`onDisabled`).
 
 ## Candidate enhancements (research-sourced)
 
