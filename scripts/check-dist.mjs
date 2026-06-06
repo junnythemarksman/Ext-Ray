@@ -28,9 +28,17 @@ for (const rel of referenced) {
 
 const swRel = manifest.background?.service_worker;
 const sw = swRel ? resolve(dist, swRel) : '';
-sw && existsSync(sw) && readFileSync(sw).length > 0
-  ? ok('service worker is non-empty')
-  : fail('service worker missing or empty');
+if (sw && existsSync(sw)) {
+  const swSource = readFileSync(sw, 'utf8');
+  swSource.length > 0 ? ok('service worker is non-empty') : fail('service worker is empty');
+  // Self-containment: a module SW must not import sibling chunks (the MV3 dynamic-import
+  // footgun the two-pass build exists to prevent). A self-contained bundle has no `from '...'`.
+  /\bfrom\s*['"]/.test(swSource)
+    ? fail('service worker is not self-contained (imports a sibling chunk)')
+    : ok('service worker is self-contained');
+} else {
+  fail('service worker missing');
+}
 
 if (failed) {
   console.error('check-dist: FAILED');

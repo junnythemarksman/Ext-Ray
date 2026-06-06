@@ -10,6 +10,7 @@ import { defineConfig } from 'vitest/config';
 const isSw = process.env.BUILD_TARGET === 'sw';
 
 export default defineConfig({
+  base: './',
   publicDir: isSw ? false : 'public',
   build: {
     outDir: 'dist',
