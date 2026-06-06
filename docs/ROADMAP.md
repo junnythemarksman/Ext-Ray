@@ -14,12 +14,13 @@ flow → §9 testing → §10 distribution). One phase, one coherent slice of th
 | **1 — Scaffold, tooling & trace layer** | TS + Vite + Vitest, MV3 manifest (4 non-host permissions), shared types, `debug.ts` trace layer (`sec`/`perf`/`calc`, zero-cost off) | ✅ |
 | **2 — Pure engines (TDD)** | `scoring/` (`scoreExtension` + `gradeFleet`, owner-endorsed weights) and `snapshot/` (`diff`, 6 Change kinds, first-run invariant) | ✅ |
 | **3 — Persistence (`storage/`)** | Typed `chrome.storage.local` wrapper (local-only by design): last snapshot, settings, per-extension `firstSeen`/`lastVersionChange` timestamps, ignore list; `schemaVersion` + `migrate()` seam | ✅ |
-| **4 — Background guardian** | Service worker: synchronous top-level listeners, self-healing alarm, scan → score + diff → notify; **severity classification** + the **"version bump after long stability"** temporal signal (spec §5.4, §4.5) | ◀ **next** |
+| **4 — Background guardian** | Service worker: synchronous top-level listeners incl. `onEnabled`/`onDisabled`/`onUninstalled` (**C2**), self-healing alarm, scan → score + diff → notify; **severity classification** (host/match-pattern expansion = high-confidence re-approval signal) + the **"version bump after long stability"** temporal signal; surface `getPermissionWarningsById` browser-authored warnings (**C1**) (spec §5.4, §4.5) | ◀ **next** |
 | **5 — MV3 build pipeline** | Vite multi-entry bundling → loadable `dist/`; wires manifest entry points. *The gate between "passes Vitest" and "loads in a browser."* | ⬜ |
 | **6 — Popup report UI** | `getAll()` → score → overall grade + risk cards worst-first, plain-English reasons, Disable/Remove (gated on `mayDisable`), honest-limits disclosure (spec §5.5) | ⬜ |
 | **7 — Options / settings UI** | Toggle monitoring, scan cadence, notification prefs, manage ignore-list (spec §5.6) | ⬜ |
 | **8 — Integration & in-browser E2E** | Playwright: load unpacked in Chrome/Edge, exercise every control, watch `console.error`/`pageerror`, screenshot on failure | ⬜ |
 | **9 — Store-listing readiness** | Privacy policy + Limited Use disclosure, first-run screen pre-empting the `management` warning, USPTO trademark check (spec §10) | ⬜ |
+| **10 — On-device AI explanations** *(progressive enhancement, built last)* | Chrome built-in AI (Prompt + Summarizer, Gemini Nano) for local plain-English risk explanations, layered **over C1** with graceful degradation when unavailable; honest disclosure of the one-time model download + hardware gates (**C3**) | ⬜ |
 
 ## Where we are
 
@@ -48,9 +49,9 @@ non-goal relaxed · **(C)** out of scope.
 
 | # | Enhancement | Tag | Lands in | Source (year) |
 |---|---|---|---|---|
-| **C1** | **Use `chrome.management.getPermissionWarningsById(id)`** — surface the *browser's own* human-readable permission warnings per extension. Free plain-English risk text, no model, within the `management` permission we already hold. **We were missing this.** | A | Phase 4 / 6 | [Chrome mgmt API](https://developer.chrome.com/docs/extensions/reference/api/management) (2025) |
-| **C2** | **Add push events `onEnabled` / `onDisabled` / `onUninstalled`** (alongside the planned `onInstalled`) — catch inter-poll state changes for the guardian; no new permission. | A | Phase 4 | [Chrome mgmt API](https://developer.chrome.com/docs/extensions/reference/api/management) (2025) |
-| **C3** | **On-device plain-English explanations via Chrome built-in AI** (Prompt API + Summarizer API, Gemini Nano) — stable for *extensions* since Chrome 138, CPU inference since Chrome 140; runs fully on-device, nothing leaves after a one-time model download. A *progressive enhancement* that degrades to C1 when unavailable. | A\* | **proposed Phase 10** | [Chrome AI](https://developer.chrome.com/docs/ai/prompt-api) (2025) |
+| **C1** | **Use `chrome.management.getPermissionWarningsById(id)`** — surface the *browser's own* human-readable permission warnings per extension. Free plain-English risk text, no model, within the `management` permission we already hold. **We were missing this.** | A | **Phase 4 ✅ adopted** | [Chrome mgmt API](https://developer.chrome.com/docs/extensions/reference/api/management) (2025) |
+| **C2** | **Add push events `onEnabled` / `onDisabled` / `onUninstalled`** (alongside the planned `onInstalled`) — catch inter-poll state changes for the guardian; no new permission. | A | **Phase 4 ✅ adopted** | [Chrome mgmt API](https://developer.chrome.com/docs/extensions/reference/api/management) (2025) |
+| **C3** | **On-device plain-English explanations via Chrome built-in AI** (Prompt API + Summarizer API, Gemini Nano) — stable for *extensions* since Chrome 138, CPU inference since Chrome 140; runs fully on-device, nothing leaves after a one-time model download. A *progressive enhancement* that degrades to C1 when unavailable. | A\* | **Phase 10 ✅ adopted** | [Chrome AI](https://developer.chrome.com/docs/ai/prompt-api) (2025) |
 | **C4** | **Hold the line: transparency / diff / explanation, NOT a malware classifier.** Metadata-only ML hits ~98% in lab but ~54% *false-negatives* on new malware (concept drift); a bundled static classifier would silently rot. Reinforces our honest-limits stance. | A (framing) | spec §13 / Phase 6 | [arXiv 2509.21590](https://arxiv.org/html/2509.21590) (2025) |
 | **C5** | **"Republished under a new name" via declared-field similarity** — name edit-distance, icon-URL/hash, version-string and permission-set Jaccard across the installed fleet. Refines the deferred §13.2 identity-churn idea; full *code* clustering stays out of scope. | A (decl. fields) / B (code) | Phase 4 (later) | [arXiv 2406.12710](https://arxiv.org/html/2406.12710v1) (2024) |
 
@@ -59,6 +60,10 @@ network event in the AI path — triggered by Chrome/the user, not Ext-Ray's cod
 on desktop hardware (≥16 GB RAM, 4+ cores, ~22 GB free disk; no Android/iOS/ChromeOS). Ext-Ray
 itself still makes zero network calls. We'd disclose the download plainly and keep **C1 as the
 baseline**, with C3 layered on only when `LanguageModel`/`Summarizer` reports available.
+
+**Adopted (2026-06-06):** C1 + C2 into Phase 4; C3 as Phase 10 (progressive enhancement, built
+last). C4 is a framing principle, already reflected in the honest-limits disclosure (spec §13).
+C5 remains deferred (§13.2).
 
 ### Research corrections — what NOT to build
 
