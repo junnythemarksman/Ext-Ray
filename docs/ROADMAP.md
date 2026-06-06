@@ -15,8 +15,8 @@ flow → §9 testing → §10 distribution). One phase, one coherent slice of th
 | **2 — Pure engines (TDD)** | `scoring/` (`scoreExtension` + `gradeFleet`, owner-endorsed weights) and `snapshot/` (`diff`, 6 Change kinds, first-run invariant) | ✅ |
 | **3 — Persistence (`storage/`)** | Typed `chrome.storage.local` wrapper (local-only by design): last snapshot, settings, per-extension `firstSeen`/`lastVersionChange` timestamps, ignore list; `schemaVersion` + `migrate()` seam | ✅ |
 | **4 — Background guardian** | Service worker: synchronous top-level listeners incl. `onEnabled`/`onDisabled`/`onUninstalled` (**C2**), self-healing alarm, scan → score + diff → notify; **severity classification** (host/match-pattern expansion = high-confidence re-approval signal) + the **"version bump after long stability"** temporal signal; surface `getPermissionWarningsById` browser-authored warnings (**C1** — deferred to Phase 6 display) (spec §5.4, §4.5) | ✅ |
-| **5 — MV3 build pipeline** | Vite multi-entry bundling → loadable `dist/`; wires manifest entry points. *The gate between "passes Vitest" and "loads in a browser."* Ship `icons/icon-128.png` (the guardian's `notifications.create` needs it) and prefer `chrome.runtime.getURL()` for the iconUrl. | ◀ **next** |
-| **6 — Popup report UI** | `getAll()` → score → overall grade + risk cards worst-first, plain-English reasons, Disable/Remove (gated on `mayDisable`), honest-limits disclosure (spec §5.5). Wire `chrome.notifications.onClicked` → open the popup (a basic notification's click is otherwise inert); use `chrome.action.openPopup()` with a report-tab fallback (it has reliability caveats). | ⬜ |
+| **5 — MV3 build pipeline** | Hand-rolled two-pass Vite build (zero new deps) → loadable `dist/`: self-contained SW pass + pages pass, `public/` copies manifest + placeholder icons, `base: './'` relative assets, `check-dist.mjs` asserts the loadable contract. SW `iconUrl` uses `chrome.runtime.getURL()`. | ✅ |
+| **6 — Popup report UI** | `getAll()` → score → overall grade + risk cards worst-first, plain-English reasons, Disable/Remove (gated on `mayDisable`), honest-limits disclosure (spec §5.5). Wire `chrome.notifications.onClicked` → open the popup (a basic notification's click is otherwise inert); use `chrome.action.openPopup()` with a report-tab fallback (it has reliability caveats). Replace the stub `popup/` page; widen `tsconfig` `include` to type-check the real `popup`/`options` TS. | ◀ **next** |
 | **7 — Options / settings UI** | Toggle monitoring, scan cadence, notification prefs, manage ignore-list (spec §5.6). Clamp `scanIntervalMinutes` ≥ 0.5 — Chrome 120+ won't honor a shorter alarm period. | ⬜ |
 | **8 — Integration & in-browser E2E** | Playwright: load unpacked in Chrome/Edge, exercise every control, watch `console.error`/`pageerror`, screenshot on failure. **Deferred Phase-4 guardian robustness cases land here:** (a) service-worker terminal unhandled-rejection if the final queued scan fails; (b) notify-before-persist kill window (could re-notify once); (c) `notifications.create` rejecting when the icon asset is absent. | ⬜ |
 | **9 — Store-listing readiness** | Privacy policy + Limited Use disclosure, first-run screen pre-empting the `management` warning, USPTO trademark check (spec §10) | ⬜ |
@@ -24,15 +24,15 @@ flow → §9 testing → §10 distribution). One phase, one coherent slice of th
 
 ## Where we are
 
-**Phase 4 complete** — the background guardian (`management/` edge + pure `guardian/` core
-+ service-worker glue) is built, unit-tested, and merged to `main` (64 tests, `tsc`-clean).
-**Phase 5 (MV3 build pipeline) is next** — it makes the extension actually loadable in a
-browser, unblocking the popup/options UIs and the Phase 8 in-browser tests.
+**Phase 5 complete** — `npm run build` produces a loadable MV3 `dist/` (self-contained SW +
+stub popup/options + manifest + placeholder icons); `npm run verify:build` gates it. Merged to
+`main` (64 tests, `tsc`-clean). **Phase 6 (popup report UI) is next** — the first real user-facing
+surface: it replaces the stub popup with the on-demand audit (grade + risk cards), and is where
+the `getPermissionWarningsById` (C1) and notification-click wiring land.
 
-The clean architectural break: Phases 2–3 are pure/near-pure and unit-testable; everything
-from Phase 4 touches `chrome.*` and only becomes *runnable* after Phase 5 (the build) — which
-is why the build pipeline is its own phase. (Phase 5 could move earlier if we prefer to
-smoke-test each edge in a real browser as it's built; current plan keeps it at 5.)
+The architectural arc so far: Phases 2–3 were pure/near-pure and unit-tested; Phase 4 added the
+`chrome.*` guardian glue; Phase 5 made it all loadable in a browser. From here (Phases 6–7) the
+work is user-facing UI, then Phase 8 exercises the whole thing in a real browser.
 
 ## Deferred — evidence-gated (design spec §13.2)
 
