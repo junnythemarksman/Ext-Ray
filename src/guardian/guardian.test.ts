@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import type { ExtSnapshot, Change, ExtTimestamps } from '../types';
 import { classifySeverity, STABILITY_WINDOW_DAYS, type ClassifyCtx } from './guardian';
+import { evaluateScan } from './guardian';
+import type { Settings } from '../types';
 
 const DAY = 86_400_000;
 const NOW = 1_700_000_000_000;
@@ -67,5 +69,78 @@ describe('classifySeverity', () => {
     const removedExt: Change = { kind: 'removed', id, name: 'X' };
     expect(classifySeverity(removedPerm, ctx([ext()]))).toBe('info');
     expect(classifySeverity(removedExt, ctx([]))).toBe('info');
+  });
+
+  it('normal install of a high-tier extension is notable', () => {
+    const c: Change = { kind: 'installed', id, name: 'X' };
+    // 'cookies' alone scores into the high tier (not critical) under a normal install
+    expect(classifySeverity(c, ctx([ext({ permissions: ['cookies'] })]))).toBe('notable');
+  });
+});
+
+const SETTINGS: Settings = { monitoringEnabled: true, scanIntervalMinutes: 5, notify: true };
+
+describe('evaluateScan', () => {
+  const A = 'a'.repeat(32), B = 'b'.repeat(32), C = 'c'.repeat(32);
+
+  it('first run (empty prev) establishes a silent baseline — no notification', () => {
+    const r = evaluateScan({
+      prev: [], curr: [ext({ id: A, hostPermissions: ['<all_urls>'] })],
+      timestamps: {}, settings: SETTINGS, ignored: [], now: NOW,
+    });
+    expect(r.notification).toBeNull();
+    expect(r.classified).toEqual([]);
+    expect(r.timestamps[A]).toEqual({ firstSeen: NOW, lastVersionChange: NOW });
+  });
+
+  it('suppresses changes for ignored extensions', () => {
+    const r = evaluateScan({
+      prev: [ext({ id: A })], curr: [ext({ id: A, hostPermissions: ['<all_urls>'] })],
+      timestamps: { [A]: { firstSeen: 0, lastVersionChange: 0 } },
+      settings: SETTINGS, ignored: [A], now: NOW,
+    });
+    expect(r.classified).toEqual([]);
+    expect(r.notification).toBeNull();
+  });
+
+  it('batches multiple noteworthy changes into one notification', () => {
+    const r = evaluateScan({
+      prev: [ext({ id: A }), ext({ id: B, updateUrl: 'http://old' })],
+      curr: [ext({ id: A, hostPermissions: ['<all_urls>'] }), ext({ id: B, updateUrl: 'http://new' })],
+      timestamps: { [A]: { firstSeen: 0, lastVersionChange: 0 }, [B]: { firstSeen: 0, lastVersionChange: 0 } },
+      settings: SETTINGS, ignored: [], now: NOW,
+    });
+    expect(r.notification?.title).toBe('Ext-Ray: 2 changes need review');
+  });
+
+  it('stays silent when notifications are disabled, but still classifies + updates timestamps', () => {
+    const r = evaluateScan({
+      prev: [ext({ id: A })], curr: [ext({ id: A, hostPermissions: ['<all_urls>'] })],
+      timestamps: { [A]: { firstSeen: 0, lastVersionChange: 0 } },
+      settings: { ...SETTINGS, notify: false }, ignored: [], now: NOW,
+    });
+    expect(r.notification).toBeNull();
+    expect(r.classified).toHaveLength(1);
+  });
+
+  it('updates timestamps: new id, version bump, carry-forward, and drops removed ids', () => {
+    const r = evaluateScan({
+      prev: [ext({ id: A, version: '1.0.0' }), ext({ id: B })],
+      curr: [ext({ id: A, version: '2.0.0' }), ext({ id: C })],
+      timestamps: { [A]: { firstSeen: 100, lastVersionChange: 100 }, [B]: { firstSeen: 200, lastVersionChange: 200 } },
+      settings: SETTINGS, ignored: [], now: NOW,
+    });
+    expect(r.timestamps[A]).toEqual({ firstSeen: 100, lastVersionChange: NOW }); // bump
+    expect(r.timestamps[C]).toEqual({ firstSeen: NOW, lastVersionChange: NOW }); // new
+    expect(r.timestamps[B]).toBeUndefined();                                     // removed
+  });
+
+  it('is deterministic — same input, same result', () => {
+    const input = {
+      prev: [ext({ id: A })], curr: [ext({ id: A, hostPermissions: ['<all_urls>'] })],
+      timestamps: { [A]: { firstSeen: 0, lastVersionChange: 0 } },
+      settings: SETTINGS, ignored: [], now: NOW,
+    };
+    expect(evaluateScan(input)).toEqual(evaluateScan(input));
   });
 });
