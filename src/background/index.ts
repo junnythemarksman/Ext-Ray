@@ -29,7 +29,7 @@ async function runScan(): Promise<void> {
   if (result.notification) {
     chrome.notifications.create({
       type: 'basic',
-      iconUrl: 'icons/icon-128.png',
+      iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
       title: result.notification.title,
       message: result.notification.message,
     });
