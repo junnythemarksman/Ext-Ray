@@ -7,8 +7,7 @@ import { defineConfig } from 'vitest/config';
 //   sw  (BUILD_TARGET=sw): single-input service worker, inlineDynamicImports → one
 //                    self-contained background/index.js; appends (emptyOutDir:false).
 // `npm test` sets no BUILD_TARGET and ignores the `build`/`publicDir` fields entirely.
-const target = process.env.BUILD_TARGET;
-const isSw = target === 'sw';
+const isSw = process.env.BUILD_TARGET === 'sw';
 
 export default defineConfig({
   publicDir: isSw ? false : 'public',
@@ -21,6 +20,7 @@ export default defineConfig({
       ? {
           input: { background: 'src/background/index.ts' },
           output: {
+            // keep here — hoisting to a shared output breaks the multi-entry pages pass
             inlineDynamicImports: true,
             entryFileNames: 'background/index.js',
           },
