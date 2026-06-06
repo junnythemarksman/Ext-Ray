@@ -1,0 +1,27 @@
+// management/ — the chrome.management edge (thin glue, design spec §3.1).
+// The only chrome.management call this phase. Phase 6 extends it with
+// getPermissionWarningsById for the popup.
+
+import type { ExtSnapshot } from '../types';
+
+function normalize(e: chrome.management.ExtensionInfo): ExtSnapshot {
+  return {
+    id: e.id,
+    name: e.name,
+    version: e.version,
+    enabled: e.enabled,
+    type: e.type,
+    installType: e.installType,
+    permissions: e.permissions ?? [],
+    hostPermissions: e.hostPermissions ?? [],
+    mayDisable: e.mayDisable,
+    updateUrl: e.updateUrl,
+  };
+}
+
+/** Installed extensions (excluding themes/apps and Ext-Ray itself), normalized. */
+export async function getExtensions(): Promise<ExtSnapshot[]> {
+  const all = await chrome.management.getAll();
+  const selfId = chrome.runtime.id;
+  return all.filter((e) => e.type === 'extension' && e.id !== selfId).map(normalize);
+}

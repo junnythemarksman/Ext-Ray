@@ -1,0 +1,41 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+import { getExtensions } from './management';
+
+const SELF_ID = 's'.repeat(32);
+
+function installFakeChrome(all: unknown[], selfId = SELF_ID): void {
+  (globalThis as unknown as { chrome: unknown }).chrome = {
+    runtime: { id: selfId },
+    management: { getAll: async () => all },
+  };
+}
+
+const info = (o: Record<string, unknown>) => ({
+  id: 'a'.repeat(32), name: 'X', version: '1.0.0', enabled: true, type: 'extension',
+  installType: 'normal', permissions: ['storage'], hostPermissions: [], mayDisable: true, ...o,
+});
+
+beforeEach(() => installFakeChrome([]));
+
+describe('getExtensions', () => {
+  it('excludes Ext-Ray itself', async () => {
+    installFakeChrome([info({ id: SELF_ID }), info({ id: 'b'.repeat(32) })]);
+    const ids = (await getExtensions()).map((e) => e.id);
+    expect(ids).toEqual(['b'.repeat(32)]);
+  });
+
+  it('filters out non-extensions (themes/apps)', async () => {
+    installFakeChrome([info({ id: 'a'.repeat(32), type: 'theme' }), info({ id: 'b'.repeat(32) })]);
+    const ids = (await getExtensions()).map((e) => e.id);
+    expect(ids).toEqual(['b'.repeat(32)]);
+  });
+
+  it('normalizes to the ExtSnapshot projection, defaulting permission arrays', async () => {
+    installFakeChrome([info({ id: 'b'.repeat(32), permissions: undefined, hostPermissions: undefined })]);
+    const [snap] = await getExtensions();
+    expect(snap).toEqual({
+      id: 'b'.repeat(32), name: 'X', version: '1.0.0', enabled: true, type: 'extension',
+      installType: 'normal', permissions: [], hostPermissions: [], mayDisable: true, updateUrl: undefined,
+    });
+  });
+});
