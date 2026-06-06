@@ -14,19 +14,20 @@ flow → §9 testing → §10 distribution). One phase, one coherent slice of th
 | **1 — Scaffold, tooling & trace layer** | TS + Vite + Vitest, MV3 manifest (4 non-host permissions), shared types, `debug.ts` trace layer (`sec`/`perf`/`calc`, zero-cost off) | ✅ |
 | **2 — Pure engines (TDD)** | `scoring/` (`scoreExtension` + `gradeFleet`, owner-endorsed weights) and `snapshot/` (`diff`, 6 Change kinds, first-run invariant) | ✅ |
 | **3 — Persistence (`storage/`)** | Typed `chrome.storage.local` wrapper (local-only by design): last snapshot, settings, per-extension `firstSeen`/`lastVersionChange` timestamps, ignore list; `schemaVersion` + `migrate()` seam | ✅ |
-| **4 — Background guardian** | Service worker: synchronous top-level listeners incl. `onEnabled`/`onDisabled`/`onUninstalled` (**C2**), self-healing alarm, scan → score + diff → notify; **severity classification** (host/match-pattern expansion = high-confidence re-approval signal) + the **"version bump after long stability"** temporal signal; surface `getPermissionWarningsById` browser-authored warnings (**C1**) (spec §5.4, §4.5) | ◀ **next** |
-| **5 — MV3 build pipeline** | Vite multi-entry bundling → loadable `dist/`; wires manifest entry points. *The gate between "passes Vitest" and "loads in a browser."* | ⬜ |
+| **4 — Background guardian** | Service worker: synchronous top-level listeners incl. `onEnabled`/`onDisabled`/`onUninstalled` (**C2**), self-healing alarm, scan → score + diff → notify; **severity classification** (host/match-pattern expansion = high-confidence re-approval signal) + the **"version bump after long stability"** temporal signal; surface `getPermissionWarningsById` browser-authored warnings (**C1** — deferred to Phase 6 display) (spec §5.4, §4.5) | ✅ |
+| **5 — MV3 build pipeline** | Vite multi-entry bundling → loadable `dist/`; wires manifest entry points. *The gate between "passes Vitest" and "loads in a browser."* | ◀ **next** |
 | **6 — Popup report UI** | `getAll()` → score → overall grade + risk cards worst-first, plain-English reasons, Disable/Remove (gated on `mayDisable`), honest-limits disclosure (spec §5.5) | ⬜ |
 | **7 — Options / settings UI** | Toggle monitoring, scan cadence, notification prefs, manage ignore-list (spec §5.6) | ⬜ |
-| **8 — Integration & in-browser E2E** | Playwright: load unpacked in Chrome/Edge, exercise every control, watch `console.error`/`pageerror`, screenshot on failure | ⬜ |
+| **8 — Integration & in-browser E2E** | Playwright: load unpacked in Chrome/Edge, exercise every control, watch `console.error`/`pageerror`, screenshot on failure. **Deferred Phase-4 guardian robustness cases land here:** (a) service-worker terminal unhandled-rejection if the final queued scan fails; (b) notify-before-persist kill window (could re-notify once); (c) `notifications.create` rejecting when the icon asset is absent. | ⬜ |
 | **9 — Store-listing readiness** | Privacy policy + Limited Use disclosure, first-run screen pre-empting the `management` warning, USPTO trademark check (spec §10) | ⬜ |
 | **10 — On-device AI explanations** *(progressive enhancement, built last)* | Chrome built-in AI (Prompt + Summarizer, Gemini Nano) for local plain-English risk explanations, layered **over C1** with graceful degradation when unavailable; honest disclosure of the one-time model download + hardware gates (**C3**) | ⬜ |
 
 ## Where we are
 
-**Phase 3 complete** — both pure engines plus the persistence layer are built, unit-tested
-(43 tests), and `tsc`-clean. **Phase 4 (background guardian) is next**; it consumes the
-Phase 3 timestamps to compute the "version bump after long stability" signal.
+**Phase 4 complete** — the background guardian (`management/` edge + pure `guardian/` core
++ service-worker glue) is built, unit-tested, and merged to `main` (64 tests, `tsc`-clean).
+**Phase 5 (MV3 build pipeline) is next** — it makes the extension actually loadable in a
+browser, unblocking the popup/options UIs and the Phase 8 in-browser tests.
 
 The clean architectural break: Phases 2–3 are pure/near-pure and unit-testable; everything
 from Phase 4 touches `chrome.*` and only becomes *runnable* after Phase 5 (the build) — which
