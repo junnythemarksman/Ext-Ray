@@ -202,3 +202,38 @@ This design is the output of a brainstorming + two-pass adversarial validation s
 - Staleness/abandonment signal: `chrome.management` has no "last updated" field; Ext-Ray
   approximates via self-tracked version-change timestamps over time.
 - Possible later: export a local "security report card"; an Edge-specific smoke test.
+
+## 13. Post-design research validation (2026-06-06)
+
+A multi-source literature + threat-intel review (peer-reviewed primaries, first-party
+incident analyses, Google's own docs; claims adversarially verified) validated the core
+design and sharpened its honest limits. Highlights, each cited:
+
+- **Permission→tier + a separate host axis + worst-case fleet grade is established
+  practice.** Google Chrome Enterprise blocks by permission (`blocked_permissions`) and by
+  host (`runtime_blocked_hosts`) as distinct axes
+  (support.google.com/chrome/a/answer/7532015, 2024).
+- **The snapshot-diff guardian targets the dominant modern threat** — the post-install
+  silent auto-update of an already-trusted extension (Cyberhaven, Dec 2024 → ~400K users;
+  RedDirection → 18 extensions, 2.3M users): SecureAnnex 2025, Sekoia 2025, eSentire 2025.
+- **Declared permissions = capability, not behavior; they over-predict malice ~10×**
+  (WWW'24, dl.acm.org/doi/10.1145/3589334.3645683; Springer IJIS 2022). The report UI must
+  state plainly that a high tier means capability, not detected malice.
+- **Do not require a permission delta to alert on a post-stability update** — attackers
+  stay within already-granted scope to avoid the re-prompt (SecureAnnex 2025). Confirms the
+  guardian's "any silent change" semantics (§4.5).
+
+### 13.1 Honest blind spots (cannot detect — declared metadata only)
+
+`chrome.management.getAll()` exposes only a subset of the manifest, so Ext-Ray cannot see
+(and the UI will disclose): `content_scripts.matches` granularity,
+`web_accessible_resources` injection, `declarative_net_request` static rules, CSP,
+used-vs-dormant permissions, trigger-gated payloads, and injected code / network / C2 /
+local IOCs. It flags the version bump that delivers a payload, not the payload itself.
+
+### 13.2 Deferred (in-scope but evidence-gated)
+
+- Composite `scripting` + broad-host capability flag (label "common in legitimate tools").
+- Per-axis score decomposition in the report (host breadth shown as its own axis).
+- "Republished under a new name" identity-churn heuristic — unknown false-positive rate.
+- `updateUrl`-anomaly on first scan — no empirical threshold; Edge uses different endpoints.

@@ -36,3 +36,24 @@ export interface FleetGrade {
   /** Aggregate fleet risk, normalized to [0, 1]; ≥ the worst single score. */
   score: number;
 }
+
+// A single difference the guardian detected between two scans (design spec §5.2).
+//
+// `permissions-added` / `permissions-removed` report the UNION delta of an
+// extension's API `permissions` and `hostPermissions` — host patterns are
+// self-identifying (they contain "://" or are "<all_urls>"), so host-scope
+// expansion (the highest-signal silent-update change) is captured here without a
+// separate Change kind. `publisher-changed` is an `updateUrl` change.
+//
+// NOTE (honest scope limit): chrome.management.getAll() exposes only a subset of
+// the manifest — NOT content_scripts.matches, web_accessible_resources, or
+// declarative_net_request rules — so this engine can diff aggregate permissions
+// and host scope, but cannot see the specific content-script that a malicious
+// update injects. It flags the version bump that delivered it, not the payload.
+export type Change =
+  | { kind: 'installed'; id: string; name: string }
+  | { kind: 'removed'; id: string; name: string }
+  | { kind: 'permissions-added'; id: string; name: string; permissions: string[] }
+  | { kind: 'permissions-removed'; id: string; name: string; permissions: string[] }
+  | { kind: 'version-changed'; id: string; name: string; from: string; to: string }
+  | { kind: 'publisher-changed'; id: string; name: string; from?: string; to?: string };

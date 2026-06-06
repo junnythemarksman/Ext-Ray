@@ -7,8 +7,9 @@ extension you have installed, grades its security risk in plain English, and qui
 watches for anything that changes _after_ you install it. No backend. No accounts.
 Nothing leaves your browser.
 
-> **Status:** Design phase — see the [design spec](docs/superpowers/specs/2026-06-05-ext-ray-design.md).
-> No implementation code yet.
+> **Status:** Implementation in progress — the two pure engines (`scoring`, `snapshot`)
+> are built and unit-tested; the `chrome.*` glue (background, popup, options) is next.
+> See the [design spec](docs/superpowers/specs/2026-06-05-ext-ray-design.md).
 
 ## Why it exists
 
@@ -197,8 +198,12 @@ flowchart TB
   `management`, `storage`, `alarms`, `notifications`.
 - **No** `<all_urls>`, no page/content access, no network calls to any server.
 - **Read-only** by default — it never disables or removes anything without your click.
-- It honestly tells you its limit: it reads _declared_ permissions and install state,
-  **not** an extension's code or network behavior.
+- It honestly tells you its limit: a high risk tier means an extension **can** do
+  something powerful, **not** that it is malicious — most popular, trusted extensions
+  legitimately hold broad permissions. Ext-Ray reads _declared_ permissions and install
+  state, and **cannot** see an extension's actual code, the pages it injects, its network
+  traffic, which permissions it truly uses vs. merely declares, or behavior hidden behind
+  a trigger. It flags capability and silent change — never proven malice.
 
 ## Scope
 
