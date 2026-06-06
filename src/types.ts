@@ -75,3 +75,29 @@ export interface ExtTimestamps {
   firstSeen: number;
   lastVersionChange: number;
 }
+
+// ── Phase 4: background guardian ──────────────────────────────────────────────
+
+export type Severity = 'info' | 'notable' | 'high';
+
+export interface ClassifiedChange {
+  change: Change;
+  severity: Severity;
+}
+
+// Everything the pure guardian core needs to evaluate one scan. `now` is injected
+// (never read from a clock inside the pure core) so the core stays deterministic.
+export interface ScanInput {
+  prev: ExtSnapshot[];
+  curr: ExtSnapshot[];
+  timestamps: Record<string, ExtTimestamps>;
+  settings: Settings;
+  ignored: string[];
+  now: number;
+}
+
+export interface ScanResult {
+  timestamps: Record<string, ExtTimestamps>;        // new map to persist
+  classified: ClassifiedChange[];                    // all (non-ignored) changes + severity
+  notification: { title: string; message: string } | null; // batched; null = stay silent
+}
