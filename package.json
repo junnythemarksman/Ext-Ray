@@ -5,6 +5,9 @@
   "type": "module",
   "description": "Local-only Chromium (MV3) extension that audits your other extensions' security — on-device, no backend.",
   "scripts": {
+    "build": "vite build && BUILD_TARGET=sw vite build",
+    "build:watch": "BUILD_TARGET=sw vite build --watch",
+    "verify:build": "npm run build && node scripts/check-dist.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:debug": "EXTRAY_DEBUG=sec.*,perf.*,calc.* vitest run --reporter=verbose",
