@@ -57,3 +57,21 @@ export type Change =
   | { kind: 'permissions-removed'; id: string; name: string; permissions: string[] }
   | { kind: 'version-changed'; id: string; name: string; from: string; to: string }
   | { kind: 'publisher-changed'; id: string; name: string; from?: string; to?: string };
+
+// Guardian configuration (design spec §5.6), persisted via storage/.
+export interface Settings {
+  /** Whether the background guardian re-scans on a timer. */
+  monitoringEnabled: boolean;
+  /** Re-scan cadence in minutes (spec §4.4: a few minutes is ample; min alarm 30s). */
+  scanIntervalMinutes: number;
+  /** Whether meaningful changes raise a chrome.notifications alert. */
+  notify: boolean;
+}
+
+// Per-extension timestamps the guardian self-tracks over time (spec §5.3, §12).
+// chrome.management has no "last updated" field, so Ext-Ray derives staleness and
+// the "version bump after long stability" signal from these. Epoch milliseconds.
+export interface ExtTimestamps {
+  firstSeen: number;
+  lastVersionChange: number;
+}
