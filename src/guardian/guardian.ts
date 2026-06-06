@@ -65,7 +65,7 @@ function nextTimestamps(
   return next;
 }
 
-function describe_(classified: ClassifiedChange): string {
+function describeChange(classified: ClassifiedChange): string {
   const { change } = classified;
   switch (change.kind) {
     case 'installed': return `${change.name} was installed`;
@@ -81,7 +81,7 @@ function buildNotification(noteworthy: ClassifiedChange[]): { title: string; mes
   if (noteworthy.length === 0) return null;
   const n = noteworthy.length;
   const title = `Ext-Ray: ${n} change${n === 1 ? '' : 's'} need${n === 1 ? 's' : ''} review`;
-  const lines = noteworthy.slice(0, 5).map((c) => `• ${describe_(c)}`);
+  const lines = noteworthy.slice(0, 5).map((c) => `• ${describeChange(c)}`);
   if (n > 5) lines.push(`…and ${n - 5} more`);
   return { title, message: lines.join('\n') };
 }
@@ -109,6 +109,7 @@ export function evaluateScan(input: ScanInput): ScanResult {
   if (tGuardian.enabled) {
     tGuardian('scan evaluated', {
       changes: classified.length, noteworthy: noteworthy.length, notified: notification !== null,
+      suppressed: changes.length - classified.length,
     });
   }
   return { timestamps: newTimestamps, classified, notification };

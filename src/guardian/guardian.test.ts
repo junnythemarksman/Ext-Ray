@@ -1,8 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import type { ExtSnapshot, Change, ExtTimestamps } from '../types';
-import { classifySeverity, STABILITY_WINDOW_DAYS, type ClassifyCtx } from './guardian';
-import { evaluateScan } from './guardian';
-import type { Settings } from '../types';
+import type { ExtSnapshot, Change, ExtTimestamps, Settings } from '../types';
+import { classifySeverity, evaluateScan, STABILITY_WINDOW_DAYS, type ClassifyCtx } from './guardian';
 
 const DAY = 86_400_000;
 const NOW = 1_700_000_000_000;
@@ -54,7 +52,7 @@ describe('classifySeverity', () => {
     expect(classifySeverity(c, ctx([ext({ installType: 'development' })]))).toBe('high');
   });
 
-  it('normal install of a high/critical-tier extension is notable', () => {
+  it('normal install of a critical-tier extension is notable', () => {
     const c: Change = { kind: 'installed', id, name: 'X' };
     expect(classifySeverity(c, ctx([ext({ hostPermissions: ['<all_urls>'] })]))).toBe('notable');
   });
@@ -142,5 +140,24 @@ describe('evaluateScan', () => {
       settings: SETTINGS, ignored: [], now: NOW,
     };
     expect(evaluateScan(input)).toEqual(evaluateScan(input));
+  });
+
+  it('truncates the notification to 5 lines with an overflow count', () => {
+    const ids = ['a', 'b', 'c', 'd', 'e', 'f'].map((ch) => ch.repeat(32));
+    const prev = ids.map((id) => ext({ id }));
+    const curr = ids.map((id) => ext({ id, hostPermissions: ['<all_urls>'] }));
+    const timestamps = Object.fromEntries(ids.map((id) => [id, { firstSeen: 0, lastVersionChange: 0 }]));
+    const r = evaluateScan({ prev, curr, timestamps, settings: SETTINGS, ignored: [], now: NOW });
+    expect(r.notification?.title).toBe('Ext-Ray: 6 changes need review');
+    expect(r.notification?.message).toContain('…and 1 more');
+  });
+
+  it('uses singular grammar for a single change', () => {
+    const r = evaluateScan({
+      prev: [ext({ id: A })], curr: [ext({ id: A, hostPermissions: ['<all_urls>'] })],
+      timestamps: { [A]: { firstSeen: 0, lastVersionChange: 0 } },
+      settings: SETTINGS, ignored: [], now: NOW,
+    });
+    expect(r.notification?.title).toBe('Ext-Ray: 1 change needs review');
   });
 });
