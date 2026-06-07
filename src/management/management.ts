@@ -25,3 +25,15 @@ export async function getExtensions(): Promise<ExtSnapshot[]> {
   const selfId = chrome.runtime.id;
   return all.filter((e) => e.type === 'extension' && e.id !== selfId).map(normalize);
 }
+
+/** The browser's own human-readable permission warnings for an installed extension (C1). */
+export const getPermissionWarningsById = (id: string): Promise<string[]> =>
+  chrome.management.getPermissionWarningsById(id);
+
+/** Enable or disable an installed extension. */
+export const setEnabled = (id: string, enabled: boolean): Promise<void> =>
+  chrome.management.setEnabled(id, enabled);
+
+/** Uninstall via Chrome's native confirmation dialog (rejects if the user cancels). */
+export const uninstall = (id: string): Promise<void> =>
+  chrome.management.uninstall(id, { showConfirmDialog: true });

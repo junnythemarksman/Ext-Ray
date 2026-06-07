@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { getExtensions } from './management';
+import { getPermissionWarningsById, setEnabled, uninstall } from './management';
 
 const SELF_ID = 's'.repeat(32);
 
@@ -37,5 +38,36 @@ describe('getExtensions', () => {
       id: 'b'.repeat(32), name: 'X', version: '1.0.0', enabled: true, type: 'extension',
       installType: 'normal', permissions: [], hostPermissions: [], mayDisable: true, updateUrl: undefined,
     });
+  });
+});
+
+describe('management actions', () => {
+  it('getPermissionWarningsById returns the browser warnings for an id', async () => {
+    const calls: string[] = [];
+    (globalThis as unknown as { chrome: unknown }).chrome = {
+      management: {
+        getPermissionWarningsById: async (id: string) => { calls.push(id); return ['Read your data on all websites']; },
+      },
+    };
+    expect(await getPermissionWarningsById('b'.repeat(32))).toEqual(['Read your data on all websites']);
+    expect(calls).toEqual(['b'.repeat(32)]);
+  });
+
+  it('setEnabled calls through with the id and flag', async () => {
+    const calls: Array<[string, boolean]> = [];
+    (globalThis as unknown as { chrome: unknown }).chrome = {
+      management: { setEnabled: async (id: string, on: boolean) => { calls.push([id, on]); } },
+    };
+    await setEnabled('b'.repeat(32), false);
+    expect(calls).toEqual([['b'.repeat(32), false]]);
+  });
+
+  it('uninstall requests Chrome\'s native confirm dialog', async () => {
+    const calls: Array<[string, unknown]> = [];
+    (globalThis as unknown as { chrome: unknown }).chrome = {
+      management: { uninstall: async (id: string, opts: unknown) => { calls.push([id, opts]); } },
+    };
+    await uninstall('b'.repeat(32));
+    expect(calls).toEqual([['b'.repeat(32), { showConfirmDialog: true }]]);
   });
 });
