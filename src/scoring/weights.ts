@@ -14,6 +14,7 @@
 export const PERMISSION_WEIGHTS: Readonly<Record<string, number>> = {
   // Full code / traffic control — the scariest non-host capabilities.
   debugger: 1.0,
+  userScripts: 0.9, // MV3 remote-code exception: runs arbitrary user-supplied code; Chrome gates it behind a dedicated per-extension toggle
   proxy: 0.9,
   nativeMessaging: 0.9,
   webRequestBlocking: 0.85,

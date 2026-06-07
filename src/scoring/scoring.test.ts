@@ -33,6 +33,13 @@ describe('scoreExtension', () => {
     expect(v.tier).toBe('critical');
   });
 
+  it('grades the "userScripts" remote-code permission as critical', () => {
+    // Chrome 138 gates userScripts behind a dedicated per-extension toggle — its
+    // declared presence is a uniquely high-risk, browser-endorsed signal (research N2).
+    const v = scoreExtension(ext({ permissions: ['userScripts'] }));
+    expect(v.tier).toBe('critical');
+  });
+
   it('bumps risk for a sideloaded extension over the same one installed normally', () => {
     const base = { permissions: ['storage'], hostPermissions: ['https://example.com/*'] };
     const normal = scoreExtension(ext({ ...base, installType: 'normal' }));
