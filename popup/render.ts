@@ -38,7 +38,12 @@ function renderCard(card: ReportCard): HTMLElement {
   c.dataset.enabled = String(card.enabled);
 
   const head = el('div', 'card-head');
-  head.append(el('span', 'dot'), el('span', 'tier-label', TIER_LABEL[card.tier]), el('span', 'name', card.name));
+  head.append(
+    el('span', 'dot'),
+    el('span', 'tier-label', TIER_LABEL[card.tier]),
+    el('span', 'name', card.name),
+    el('span', 'version', `v${card.version}`),
+  );
   c.append(head);
 
   for (const reason of card.reasons) c.append(el('p', 'reason', reason));

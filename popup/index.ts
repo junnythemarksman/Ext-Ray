@@ -19,6 +19,9 @@ async function onClick(e: MouseEvent): Promise<void> {
   if (!item) return;
   const id = item.dataset.ext ?? '';
 
+  // Disable is reversible/low-risk and the optimistic DOM update runs AFTER the await,
+  // so a (near-impossible) setEnabled failure simply skips the update — no try/catch needed,
+  // unlike uninstall below which must swallow the user-cancel rejection.
   if (btn.dataset.action === 'disable') {
     const nextEnabled = item.dataset.enabled !== 'true'; // toggle
     await setEnabled(id, nextEnabled);
