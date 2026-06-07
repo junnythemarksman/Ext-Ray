@@ -30,8 +30,8 @@ describe('buildReport', () => {
 
   it('passes plain-English reasons through to risky cards', () => {
     const r = buildReport([ext({ hostPermissions: ['<all_urls>'] })]);
-    expect(r.risky[0].reasons.length).toBeGreaterThan(0);
-    expect(r.risky[0].tier).toBe('critical');
+    expect(r.risky[0]!.reasons.length).toBeGreaterThan(0);
+    expect(r.risky[0]!.tier).toBe('critical');
   });
 
   it('carries enabled + canDisable (from mayDisable) onto cards and rows', () => {
@@ -39,10 +39,10 @@ describe('buildReport', () => {
       ext({ id: 'c'.repeat(32), hostPermissions: ['<all_urls>'], enabled: false, mayDisable: false }),
       ext({ id: 'l'.repeat(32), enabled: true, mayDisable: true }),
     ]);
-    expect(r.risky[0].enabled).toBe(false);
-    expect(r.risky[0].canDisable).toBe(false);
-    expect(r.low[0].enabled).toBe(true);
-    expect(r.low[0].canDisable).toBe(true);
+    expect(r.risky[0]!.enabled).toBe(false);
+    expect(r.risky[0]!.canDisable).toBe(false);
+    expect(r.low[0]!.enabled).toBe(true);
+    expect(r.low[0]!.canDisable).toBe(true);
   });
 
   it('breaks score ties by name for determinism', () => {
