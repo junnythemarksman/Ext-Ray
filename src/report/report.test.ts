@@ -52,4 +52,11 @@ describe('buildReport', () => {
     expect(r.risky.map((c) => c.name)).toEqual(['Alpha', 'Zeta']);
     expect(buildReport([a, b])).toEqual(buildReport([b, a])); // order-independent
   });
+
+  it('orders low-risk rows worst-first too', () => {
+    const quiet = ext({ id: 'a'.repeat(32), name: 'Quiet', permissions: ['storage'] });   // ~0.1 → low
+    const tabby = ext({ id: 'b'.repeat(32), name: 'Tabby', permissions: ['activeTab'] });  // ~0.2 → low
+    const r = buildReport([quiet, tabby]);
+    expect(r.low.map((x) => x.id)).toEqual(['b'.repeat(32), 'a'.repeat(32)]); // 0.2 before 0.1
+  });
 });
