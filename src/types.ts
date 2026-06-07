@@ -101,3 +101,31 @@ export interface ScanResult {
   classified: ClassifiedChange[];                    // all (non-ignored) changes + severity
   notification: { title: string; message: string } | null; // batched; null = stay silent
 }
+
+// ── Phase 6: popup report view model ──────────────────────────────────────────
+
+export interface ReportCard {
+  id: string;
+  name: string;
+  version: string;
+  tier: Tier;          // 'critical' | 'high' | 'medium' (cards are tier ≥ medium)
+  score: number;       // [0,1]
+  reasons: string[];
+  enabled: boolean;
+  canDisable: boolean; // = mayDisable
+}
+
+export interface ReportRow {
+  id: string;
+  name: string;
+  tier: Tier;          // 'low'
+  enabled: boolean;
+  canDisable: boolean;
+}
+
+export interface ReportView {
+  grade: FleetGrade;
+  risky: ReportCard[]; // worst-first
+  low: ReportRow[];    // worst-first
+  counts: { total: number; risky: number; low: number };
+}
