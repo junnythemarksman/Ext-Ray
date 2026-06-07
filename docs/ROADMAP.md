@@ -89,3 +89,32 @@ Two angles produced no verified claims this run: **(4)** new 2025–26 threat cl
 Cyberhaven / RedDirection / ShadyPanda and their locally-observable signals, and **(5)**
 UX / risk-communication research for non-experts. The UX gap is the biggest open lever for
 "appeal" and deserves its own focused pass before Phase 6.
+
+## Candidate enhancements — research pass 3 (2026-06-08): trajectory + novel tech
+
+**Trajectory: ✅ on the right track (more correct in 2025–26, not less).** The dominant threat is
+the "time-bomb" supply-chain attack — extensions clean for 3–5+ years (earning Featured/Verified
+badges) then weaponized by a single silent post-install update store review can't catch
+(DarkSpectre ~8.8M browsers; ShadyPanda; RedDirection). A skeptic of static scoring (Push Security)
+endorses our exact model: "monitoring changes over time… rather than scoring static attributes."
+**Strategic correction:** lean *more* on the longitudinal diff + relative signals, *less* on
+absolute permission-breadth (a static scorer drifts; minimal sets like `activeTab`+`scripting`+
+`storage` are dangerous yet low-weight). Honest-limits is **evidence-backed** (56% of malicious
+extensions retained capability under MV3) — keep it. [[Koi](https://www.koi.ai/blog/darkspectre-unmasking-the-threat-actor-behind-7-8-million-infected-browsers), [arXiv:2503.04292](https://arxiv.org/html/2503.04292v1), [Push Security](https://pushsecurity.com/blog/why-browser-extension-risk-scoring-wont-predict-your-next-breach) — 2025–26]
+
+| # | Enhancement | Tag | Source (year) |
+|---|---|---|---|
+| **N1** | **On-device peer-group / permission-outlier analysis** — cluster the installed fleet by apparent function (name/description/type), flag extensions whose declared permissions/host scope deviate from functional peers. A *relative* signal orthogonal to the absolute scorer; catches over-privilege + function-mismatch (the DarkSpectre "video downloader requesting 28 conferencing domains" is statically visible in `hostPermissions` vs `name`). **Caveat:** best variant needs market data we can't fetch; on-device uses weaker local-text/type clustering, and a 10–40-extension fleet may be too small — **validate viability before committing.** | A | [Jana/Erlingsson/Ion arXiv:1510.07308](https://arxiv.org/abs/1510.07308); [Google 2017](https://security.googleblog.com/2017/07/identifying-intrusive-mobile-apps-using.html) |
+| **N2** | **Treat `userScripts` as a uniquely high-risk permission** in the weight table — Chrome 138 (May 2025) gates it behind a dedicated per-extension "Allow User Scripts" toggle (default OFF); the browser itself singles out this MV3 remote-code exception. Declared presence is a cheap, high-signal flag (we'd see the declared perm, not the runtime toggle state). | A | [Chrome userScripts](https://developer.chrome.com/blog/chrome-userscript) (2025) |
+| **N3** | **Gemini Nano for on-device functional categorization** (beyond plain-English explanation) — Prompt API stable since Chrome 138; the same local model can infer an extension's category to *seed* N1's clustering. Extends C3. | A\* | [Chrome AI](https://developer.chrome.com/docs/ai/prompt-api) (2025) |
+| **N4** | **Runtime host-access framing** — `addHostAccessRequest()` (Jan 2025) moved host grants to runtime. `chrome.management.hostPermissions` already reports the *granted* set (good — we don't overstate), but the honest-limits copy should note host access can change between scans (the guardian catches it). | A (framing) | [Chrome permissions API](https://developer.chrome.com/docs/extensions/reference/api/permissions) (2025) |
+
+**Track, not adopt:** **Verified Uploads** (RSA-signed CWS uploads, May 2025) is the ecosystem's
+structural answer to this threat, but it's opt-in/server-side with no documented locally-observable
+signal today — re-check the CWS listing/API surface before concluding it's unusable. **Refuted —
+don't build on:** "minimal permissions carry no discriminative signal" (0-3); "declared metadata is
+more evasion-robust than code analysis" (0-3).
+
+**Adopt-next (recommended order):** N2 (cheap weight-table win) → N1 (headline differentiator, after a
+viability spike) → N3 (folds into Phase 10) → N4 (copy refinement). N1/N3 warrant their own brainstorm
+→ spec → plan cycle; N2/N4 are small tunings.
