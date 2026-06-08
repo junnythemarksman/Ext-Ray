@@ -36,6 +36,7 @@ function renderCard(card: ReportCard): HTMLElement {
   const c = el('article', `card tier-${card.tier}`);
   c.dataset.ext = card.id;
   c.dataset.enabled = String(card.enabled);
+  if (!card.enabled) c.classList.add('is-disabled');
 
   const head = el('div', 'card-head');
   head.append(
@@ -60,6 +61,7 @@ function renderRow(row: ReportRow): HTMLElement {
   const r = el('div', `row tier-${row.tier}`);
   r.dataset.ext = row.id;
   r.dataset.enabled = String(row.enabled);
+  if (!row.enabled) r.classList.add('is-disabled');
   r.append(el('span', 'dot'), el('span', 'name', row.name));
   r.append(renderActions(row.enabled, row.canDisable));
   return r;

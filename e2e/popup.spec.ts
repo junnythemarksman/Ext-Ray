@@ -84,3 +84,17 @@ test('Remove button calls management.uninstall with the right id (page-side spy)
   expect(calls).toEqual([id]);
   await page.close();
 });
+
+test('an already-disabled extension renders dimmed (.is-disabled) on load', async ({ context, extensionId }) => {
+  // Disable Fixture Critical first; it stays a critical-tier card (score 1.0 * 0.85 disabled-factor = 0.85).
+  const id = await swEval(context, async () => {
+    const all = await chrome.management.getAll();
+    return all.find((e) => e.name === 'Fixture Critical').id;
+  });
+  await swEval(context, async (extId) => { await chrome.management.setEnabled(extId, false); }, id);
+
+  const page = await context.newPage();
+  await page.goto(popupUrl(extensionId));
+  await expect(page.locator(`article.card[data-ext="${id}"]`)).toHaveClass(/is-disabled/);
+  await page.close();
+});
