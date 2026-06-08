@@ -78,6 +78,22 @@ describe('scoreExtension', () => {
     expect(v.reasons.length).toBeGreaterThan(0);
     expect(v.reasons.every((r) => r.length > 0)).toBe(true);
   });
+
+  // F4: file:// host patterns must be labeled as local-file access, not web access
+  it('labels file:// host permissions as local-file access (not web access)', () => {
+    const v = scoreExtension(ext({ hostPermissions: ['file:///*'] }));
+    expect(v.reasons).toContain('Can read your local files');
+    expect(v.reasons).not.toContain('Can read and change your data on all websites');
+  });
+
+  // F3: multiple weight-1.0 host patterns must not produce duplicate reason strings
+  it('deduplicates identical reason strings when multiple high-weight patterns match', () => {
+    const v = scoreExtension(ext({ hostPermissions: ['<all_urls>', '*://*/*'] }));
+    const count = v.reasons.filter(
+      (r) => r === 'Can read and change your data on all websites',
+    ).length;
+    expect(count).toBe(1);
+  });
 });
 
 describe('gradeFleet', () => {

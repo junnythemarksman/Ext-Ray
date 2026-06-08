@@ -84,7 +84,9 @@ function reasonsFor(
   const reasons: string[] = [];
   const top = [...weighted].sort((a, b) => b.weight - a.weight).slice(0, 3);
   for (const { weight, label } of top) {
-    if (weight >= 1.0 && (label === '<all_urls>' || /:\/\//.test(label))) {
+    if (label.startsWith('file://')) {
+      reasons.push('Can read your local files');
+    } else if (weight >= 1.0 && (label === '<all_urls>' || /:\/\//.test(label))) {
       reasons.push('Can read and change your data on all websites');
     } else if (weight >= 0.6 && /:\/\//.test(label)) {
       reasons.push(`Can access ${label}`);
@@ -99,7 +101,7 @@ function reasonsFor(
   }
   if (!info.enabled) reasons.push('Currently disabled');
   if (reasons.length === 0) reasons.push('Minimal permissions — low risk');
-  return reasons;
+  return [...new Set(reasons)];
 }
 
 const gradeFor = (score: number): Grade => {
