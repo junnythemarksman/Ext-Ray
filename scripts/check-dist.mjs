@@ -16,6 +16,24 @@ if (!existsSync(manifestPath)) {
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
 manifest.manifest_version === 3 ? ok('manifest_version is 3') : fail('manifest_version is not 3');
 
+const EXPECTED_PERMISSIONS = ['alarms', 'management', 'notifications', 'storage'];
+const perms = [...(manifest.permissions ?? [])].sort();
+JSON.stringify(perms) === JSON.stringify(EXPECTED_PERMISSIONS)
+  ? ok(`permissions are exactly: ${EXPECTED_PERMISSIONS.join(', ')}`)
+  : fail(`permissions must be exactly [${EXPECTED_PERMISSIONS.join(', ')}], got [${perms.join(', ')}]`);
+
+'host_permissions' in manifest
+  ? fail(`host_permissions present (${JSON.stringify(manifest.host_permissions)}) — Ext-Ray must request none`)
+  : ok('no host_permissions (local-only)');
+
+'externally_connectable' in manifest
+  ? fail('externally_connectable present — must be absent')
+  : ok('no externally_connectable');
+
+manifest.background?.type === 'module'
+  ? ok('background.type is module')
+  : fail(`background.type must be 'module', got ${JSON.stringify(manifest.background?.type)}`);
+
 const referenced = [
   manifest.background?.service_worker,
   manifest.action?.default_popup,
