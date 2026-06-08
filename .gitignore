@@ -23,3 +23,5 @@ yarn-error.log*
 
 # Tool artifacts
 .playwright-mcp/
+playwright-report/
+test-results/
