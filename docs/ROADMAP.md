@@ -130,3 +130,53 @@ more evasion-robust than code analysis" (0-3).
 **Adopt-next (recommended order):** N2 (cheap weight-table win) → N1 (headline differentiator, after a
 viability spike) → N3 (folds into Phase 10) → N4 (copy refinement). N1/N3 warrant their own brainstorm
 → spec → plan cycle; N2/N4 are small tunings.
+
+## Phases 1–8 audit (2026-06-08, multi-agent review + research)
+
+A 62-agent workflow reviewed every Phase 1–8 subsystem and ran a fresh 2025–26 web/research pass,
+then adversarially verified 45 of 84 candidates against the hard constraints and this roadmap
+(14 adopt / 15 consider / 16 reject). **Verdict: Phases 1–8 are sound; the constraints hold; the
+2025–26 campaigns (GlassWorm, Phantom Shuttle proxy-MitM, Unit 42 AI/debugger abuse) *validate* the
+endorsed weights rather than challenge them** — so every "add a critical weight" idea was rejected as
+redundant. The endorsed weight values remain frozen.
+
+### Fixing now — Phase 8.5 hardening (verified small fixes)
+- **F1 — `check-dist.mjs` enforces the trust invariant** (Phase 5): assert manifest `permissions` ==
+  exactly `{management,storage,alarms,notifications}`, **no** `host_permissions`, no
+  `externally_connectable`, and `background.type === 'module'`. Today the core trust signal has zero
+  automated guard — a future network-permission edit would pass `verify:build` and ship silently.
+- **F2 — guardian empty-`curr` guard** (Phase 4): a transient empty `getAll()` (SW/profile-init race)
+  rebases the baseline to `[]`, laundering any change in that window into the "trusted" set. Add a pure
+  guard (skip scan + no persist when `curr.length===0 && prev.length>0`) + unit test.
+- **F3 — scoring reason de-dup** (Phase 2): multiple weight-1.0 hosts (`<all_urls>` + `*://*/*`) emit
+  the same "all websites" bullet twice on the card. `[...new Set(reasons)]` + regression test.
+- **F4 — `file://` reason label** (Phase 2): `file://` patterns score 1.0 but are mislabeled "all
+  websites" (honest-limits violation) → "Can read your local files" + fixture test.
+- **F5 — `.is-disabled` at initial render** (Phase 6): already-disabled extensions render at full
+  opacity until toggled; apply the class on first render in `renderCard`/`renderRow`.
+
+### Queued — verified, constraint-clean, not yet scheduled
+- **Net-new declared-metadata signals (ship informational):** `disabledReason==='permissions_increase'`
+  (zero-false-positive, Chrome-set, dominant 2025–26 footprint; [mgmt API](https://developer.chrome.com/docs/extensions/reference/api/management)) ·
+  event-driven version detection via `management.onInstalled` + stored-version diff (closes the
+  silent-update→next-scan window) · **`name-changed` Change kind** — the first concrete increment of
+  the deferred **C5**, at informational severity.
+- **Test backfill batch** (regression pins on already-correct, frozen-weight behavior): installType
+  `other`/`admin`, single-extension `gradeFleet`, `updateUrl` edge cases, `migrate()` downgrade guard,
+  `version-changed`-with-no-history, `reconcileAlarm` clamp idempotency; E2E un-ignore + monitoring
+  off→on recreation + initial cadence default.
+- **Hygiene:** `refreshDebug()` + its mutable registry appear to be **dead code** (exported, never
+  called; the "toggle logging without redeploy" path isn't wired end-to-end) — decide: wire a DEV-only
+  hook or delete. Narrowing `ExtSnapshot.installType` to the `chrome.management` literal union is
+  low-value (nothing reads `.type`).
+
+### Refuted — checked, do NOT build
+- No re-adding `debugger`/`proxy`/`nativeMessaging`/`userScripts` weights (already present, frozen,
+  and *validated* by 2025–26 campaigns). · No scored `DNR+scripting+broad-host` composite (already
+  clamps to 1.0/critical). · No hard installType tier-floors (over-flags legit sideload/dev/IT). · No
+  AI-brand-name keyword blocklist (spoofable, honest-limits violation). · No raw-permission-**count**
+  risk (2025 sources: malware uses *fewer*, minimal sets — count is inversely correlated). · No
+  bundled metadata ML classifier (~54% false-neg within months from concept drift, Rosenzweig et al.,
+  ACM TWEB 2025 — use as honest-limits framing copy). · No cloud-AI/CWS-listing data (breaks
+  local-only). · `web_accessible_resources` / `externally_connectable` / `chrome_settings_overrides` /
+  CWS developer history are **not** exposed by `chrome.management` → genuinely out of scope.
