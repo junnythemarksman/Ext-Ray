@@ -1,0 +1,86 @@
+import { test, expect, swEval } from './fixtures';
+
+const popupUrl = (id: string) => `chrome-extension://${id}/popup/index.html`;
+
+test('renders grade F, two risky cards and one low row', async ({ context, extensionId }) => {
+  const page = await context.newPage();
+  await page.goto(popupUrl(extensionId));
+
+  await expect(page.locator('.grade')).toHaveText('F');
+  await expect(page.locator('.grade')).toHaveClass(/grade-f/);
+  await expect(page.locator('.summary')).toHaveText('2 need a look · 1 low-risk');
+
+  // Critical card: tier label, name, version, and the "all websites" reason.
+  const critical = page.locator('article.card.tier-critical');
+  await expect(critical).toHaveCount(1);
+  await expect(critical.locator('.tier-label')).toHaveText('Critical');
+  await expect(critical.locator('.name')).toHaveText('Fixture Critical');
+  await expect(critical.locator('.version')).toHaveText('v1.0.0');
+  await expect(critical.locator('.reason').first()).toContainText('all websites');
+
+  // High card.
+  const high = page.locator('article.card.tier-high');
+  await expect(high).toHaveCount(1);
+  await expect(high.locator('.name')).toHaveText('Fixture High');
+
+  // Low fixture is a compact row, not a card.
+  await expect(page.locator('.low-section .row')).toHaveCount(1);
+  await expect(page.locator('.low-section .row .name')).toHaveText('Fixture Low');
+
+  // Honest-limits footer present. (Apostrophe-free substring — the source uses a curly '.)
+  await expect(page.locator('footer.limits')).toContainText('flags what an extension can do');
+  await page.close();
+});
+
+test('fills the browser permission warning on the critical card', async ({ context, extensionId }) => {
+  const page = await context.newPage();
+  await page.goto(popupUrl(extensionId));
+  const warning = page.locator('article.card.tier-critical .js-warning');
+  // fillWarnings() is async; poll until Chrome's warning text lands.
+  await expect(warning).not.toBeEmpty();
+  await page.close();
+});
+
+test('Disable button actually disables the fixture', async ({ context, extensionId }) => {
+  const page = await context.newPage();
+  await page.goto(popupUrl(extensionId));
+
+  const critical = page.locator('article.card.tier-critical');
+  const id = await critical.getAttribute('data-ext');
+  expect(id).toBeTruthy();
+
+  await critical.locator('button[data-action="disable"]').click();
+  await expect(critical).toHaveAttribute('data-enabled', 'false');
+
+  await expect
+    .poll(() => swEval<boolean>(context, async (extId) => {
+      const info = await chrome.management.get(extId);
+      return info.enabled;
+    }, id))
+    .toBe(false);
+  await page.close();
+});
+
+test('Remove button calls management.uninstall with the right id (page-side spy)', async ({ context, extensionId }) => {
+  const page = await context.newPage();
+  await page.goto(popupUrl(extensionId));
+
+  const critical = page.locator('article.card.tier-critical');
+  const id = await critical.getAttribute('data-ext');
+
+  // The native uninstall confirm dialog can't be driven by Playwright (spec §7); replace
+  // chrome.management.uninstall in the popup PAGE context with a recorder that resolves.
+  await page.evaluate(() => {
+    (window as any).__uninstalls = [];
+    (chrome.management as any).uninstall = (extId: string) => {
+      (window as any).__uninstalls.push(extId);
+      return Promise.resolve();
+    };
+  });
+
+  await critical.locator('button[data-action="remove"]').click();
+  await expect(critical).toHaveCount(0); // the controller removes the item on resolve
+  const calls = await page.evaluate(() => (window as any).__uninstalls as string[]);
+  expect(calls).toEqual([id]);
+  await page.close();
+});
