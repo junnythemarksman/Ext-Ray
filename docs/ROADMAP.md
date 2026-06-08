@@ -17,18 +17,21 @@ flow → §9 testing → §10 distribution). One phase, one coherent slice of th
 | **4 — Background guardian** | Service worker: synchronous top-level listeners incl. `onEnabled`/`onDisabled`/`onUninstalled` (**C2**), self-healing alarm, scan → score + diff → notify; **severity classification** (host/match-pattern expansion = high-confidence re-approval signal) + the **"version bump after long stability"** temporal signal; surface `getPermissionWarningsById` browser-authored warnings (**C1** — deferred to Phase 6 display) (spec §5.4, §4.5) | ✅ |
 | **5 — MV3 build pipeline** | Hand-rolled two-pass Vite build (zero new deps) → loadable `dist/`: self-contained SW pass + pages pass, `public/` copies manifest + placeholder icons, `base: './'` relative assets, `check-dist.mjs` asserts the loadable contract. SW `iconUrl` uses `chrome.runtime.getURL()`. | ✅ |
 | **6 — Popup report UI** | On-demand audit: A–F grade header, full cards for risky extensions (reasons + C1 browser warning + version + Disable/Remove), compact rows for low-risk, honest-limits footer. Pure `report/buildReport` + dumb `render` + thin `management` actions (`getPermissionWarningsById`/`setEnabled`/`uninstall`). Vanilla TS+CSS, `popup/` now type-checked. **Deferred to a follow-up:** `chrome.notifications.onClicked` → `openPopup()` wiring (touches the SW; `openPopup` has reliability caveats). | ✅ |
-| **7 — Options / settings UI** | Toggle monitoring, scan cadence, notification prefs, manage ignore-list (spec §5.6). Clamp `scanIntervalMinutes` ≥ 0.5 — Chrome 120+ won't honor a shorter alarm period. Widen `tsconfig` `include` to also type-check the real `options/` TS (Phase 6 widened it for `popup/`). | ◀ **next** |
-| **8 — Integration & in-browser E2E** | Playwright: load unpacked in Chrome/Edge, exercise every control, watch `console.error`/`pageerror`, screenshot on failure. **Deferred Phase-4 guardian robustness cases land here:** (a) service-worker terminal unhandled-rejection if the final queued scan fails; (b) notify-before-persist kill window (could re-notify once); (c) `notifications.create` rejecting when the icon asset is absent. | ⬜ |
+| **7 — Options / settings UI** | Settings page: monitoring toggle, preset cadence dropdown (1/5/15/30/60), notify toggle, per-extension ignore toggles — auto-saved to `storage/`. Pure `reconcileAlarm` (≥0.5 clamp) + SW `storage.onChanged` reconcile makes changes take effect **live** (monitoring-off clears the alarm; cadence change recreates it). `options/` now type-checked. | ✅ |
+| **8 — Integration & in-browser E2E** | Playwright: load unpacked in Chrome/Edge, exercise every control, watch `console.error`/`pageerror`, screenshot on failure. **Deferred guardian/UI robustness cases land here:** (a) SW terminal unhandled-rejection if the final queued scan fails; (b) notify-before-persist kill window (could re-notify once); (c) `notifications.create` rejecting when the icon asset is absent; (d) the deferred `notifications.onClicked` → `openPopup()` wiring; (e) confirm the managed-state (no buttons) + options 420px width read well in-browser. | ◀ **next** |
 | **9 — Store-listing readiness** | Privacy policy + Limited Use disclosure, first-run screen pre-empting the `management` warning, USPTO trademark check (spec §10) | ⬜ |
 | **10 — On-device AI explanations** *(progressive enhancement, built last)* | Chrome built-in AI (Prompt + Summarizer, Gemini Nano) for local plain-English risk explanations, layered **over C1** with graceful degradation when unavailable; honest disclosure of the one-time model download + hardware gates (**C3**) | ⬜ |
 
 ## Where we are
 
-**Phase 6 complete** — the popup on-demand audit is built and merged to `main` (73 tests,
-`tsc`-clean, `verify:build` OK): A–F grade, risky cards (reasons + C1 browser warnings + version +
-Disable/Remove), low-risk rows, honest-limits footer — all on a pure `buildReport` + dumb render.
-**Phase 7 (options / settings UI) is next** — the second UI surface: toggle monitoring, scan
-cadence, notifications, and the ignore-list, persisted via the existing `storage/` layer.
+**Phase 7 complete** — the options/settings page is built and merged to `main` (80 tests,
+`tsc`-clean, `verify:build` OK): monitoring/cadence/notify controls + per-extension ignore toggles,
+auto-saved, with a pure `reconcileAlarm` + SW `storage.onChanged` making changes take effect live.
+**Phase 8 (integration & in-browser E2E) is next** — the first time the whole extension runs in a
+real browser: load unpacked, exercise popup + options + the guardian via Playwright, and clear the
+deferred robustness/UX cases accumulated across Phases 4–7. The MVP feature set (audit + guardian +
+UIs) is now code-complete; Phases 8–9 are verification + release prep, with Phase 10 (on-device AI)
+the optional progressive enhancement.
 
 Two small follow-ups carried forward: the `notifications.onClicked` → open-popup wiring (a SW
 change with `openPopup()` caveats) and the managed-state UX (currently shows a note rather than
