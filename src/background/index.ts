@@ -11,6 +11,7 @@ import type { AlarmAction } from '../types';
 
 const ALARM_NAME = 'extray-scan';
 const tPerf = trace('perf.guardian');
+const tSec = trace('sec.guardian');
 
 // Serialize scans: an in-flight scan finishes before the next starts (spec §6).
 let inFlight: Promise<void> = Promise.resolve();
@@ -21,22 +22,35 @@ function scheduleScan(): Promise<void> {
 
 async function runScan(): Promise<void> {
   const start = Date.now();
-  const [curr, prev, timestamps, settings, ignored] = await Promise.all([
-    getExtensions(), getSnapshot(), getTimestamps(), getSettings(), getIgnored(),
-  ]);
-  if (!settings.monitoringEnabled) return;
+  try {
+    const [curr, prev, timestamps, settings, ignored] = await Promise.all([
+      getExtensions(), getSnapshot(), getTimestamps(), getSettings(), getIgnored(),
+    ]);
+    if (!settings.monitoringEnabled) return;
 
-  const result = evaluateScan({ prev, curr, timestamps, settings, ignored, now: Date.now() });
-  if (result.notification) {
-    chrome.notifications.create({
-      type: 'basic',
-      iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
-      title: result.notification.title,
-      message: result.notification.message,
-    });
+    const result = evaluateScan({ prev, curr, timestamps, settings, ignored, now: Date.now() });
+
+    // (b) Notify BEFORE persist = at-least-once delivery. If the SW is killed in the sub-second
+    // window between create() and the snapshot write, the next scan re-diffs against the old
+    // snapshot and re-shows ONE notification (a benign duplicate). Reordering would instead drop
+    // the alert silently (snapshot already current), the wrong failure mode for a security tool.
+    if (result.notification) {
+      // (c) A missing icon asset (or any create failure) must never crash the SW.
+      chrome.notifications
+        .create({
+          type: 'basic',
+          iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
+          title: result.notification.title,
+          message: result.notification.message,
+        })
+        .catch((e) => { if (tSec.enabled) tSec('notify failed', { error: String(e) }); });
+    }
+    await Promise.all([setSnapshot(curr), setTimestamps(result.timestamps)]);
+    if (tPerf.enabled) tPerf('scan complete', { ms: Date.now() - start, count: curr.length });
+  } catch (e) {
+    // (a) A failing scan must never become a terminal unhandled rejection in the inFlight chain.
+    if (tSec.enabled) tSec('scan failed', { error: String(e) });
   }
-  await Promise.all([setSnapshot(curr), setTimestamps(result.timestamps)]);
-  if (tPerf.enabled) tPerf('scan complete', { ms: Date.now() - start, count: curr.length });
 }
 
 async function applyAlarmAction(action: AlarmAction): Promise<void> {
@@ -67,4 +81,20 @@ chrome.management.onUninstalled.addListener(() => void scheduleScan());
 // Settings changed (from the options page) → re-reconcile the alarm so it takes effect live.
 chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName === 'local' && changes.settings) void reconcileAlarmNow();
+});
+
+// (d) Clicking a change notification opens the report. chrome.action.openPopup() can reject
+// without an active window/user gesture → fall back to opening the popup page in a tab. No new
+// permission: tabs.create needs no "tabs" permission, and the action is already declared.
+chrome.notifications.onClicked.addListener(() => {
+  chrome.action.openPopup().catch(() => {
+    void chrome.tabs.create({ url: chrome.runtime.getURL('popup/index.html') });
+  });
+});
+
+// (a) Last-resort net: a rejected promise from any void-ed async (init, scheduleScan) is logged,
+// never a silent terminal unhandled rejection. (WindowEventMap in the DOM lib already types
+// 'unhandledrejection' as PromiseRejectionEvent — no tsconfig lib change needed.)
+self.addEventListener('unhandledrejection', (e: PromiseRejectionEvent) => {
+  if (tSec.enabled) tSec('unhandled rejection', { reason: String(e.reason) });
 });
