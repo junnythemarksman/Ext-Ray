@@ -18,28 +18,37 @@ flow → §9 testing → §10 distribution). One phase, one coherent slice of th
 | **5 — MV3 build pipeline** | Hand-rolled two-pass Vite build (zero new deps) → loadable `dist/`: self-contained SW pass + pages pass, `public/` copies manifest + placeholder icons, `base: './'` relative assets, `check-dist.mjs` asserts the loadable contract. SW `iconUrl` uses `chrome.runtime.getURL()`. | ✅ |
 | **6 — Popup report UI** | On-demand audit: A–F grade header, full cards for risky extensions (reasons + C1 browser warning + version + Disable/Remove), compact rows for low-risk, honest-limits footer. Pure `report/buildReport` + dumb `render` + thin `management` actions (`getPermissionWarningsById`/`setEnabled`/`uninstall`). Vanilla TS+CSS, `popup/` now type-checked. **Deferred to a follow-up:** `chrome.notifications.onClicked` → `openPopup()` wiring (touches the SW; `openPopup` has reliability caveats). | ✅ |
 | **7 — Options / settings UI** | Settings page: monitoring toggle, preset cadence dropdown (1/5/15/30/60), notify toggle, per-extension ignore toggles — auto-saved to `storage/`. Pure `reconcileAlarm` (≥0.5 clamp) + SW `storage.onChanged` reconcile makes changes take effect **live** (monitoring-off clears the alarm; cadence change recreates it). `options/` now type-checked. | ✅ |
-| **8 — Integration & in-browser E2E** | Playwright: load unpacked in Chrome/Edge, exercise every control, watch `console.error`/`pageerror`, screenshot on failure. **Deferred guardian/UI robustness cases land here:** (a) SW terminal unhandled-rejection if the final queued scan fails; (b) notify-before-persist kill window (could re-notify once); (c) `notifications.create` rejecting when the icon asset is absent; (d) the deferred `notifications.onClicked` → `openPopup()` wiring; (e) confirm the managed-state (no buttons) + options 420px width read well in-browser. | ◀ **next** |
-| **9 — Store-listing readiness** | Privacy policy + Limited Use disclosure, first-run screen pre-empting the `management` warning, USPTO trademark check (spec §10) | ⬜ |
+| **8 — Integration & in-browser E2E** | Playwright: load unpacked in Chrome/Edge, exercise every control, watch `console.error`/`pageerror`, screenshot on failure. **Deferred guardian/UI robustness cases land here:** (a) SW terminal unhandled-rejection if the final queued scan fails; (b) notify-before-persist kill window (could re-notify once); (c) `notifications.create` rejecting when the icon asset is absent; (d) the deferred `notifications.onClicked` → `openPopup()` wiring; (e) confirm the managed-state (no buttons) + options 420px width read well in-browser. | ✅ |
+| **9 — Store-listing readiness** | Privacy policy + Limited Use disclosure, first-run screen pre-empting the `management` warning, USPTO trademark check (spec §10) | ◀ **next** |
 | **10 — On-device AI explanations** *(progressive enhancement, built last)* | Chrome built-in AI (Prompt + Summarizer, Gemini Nano) for local plain-English risk explanations, layered **over C1** with graceful degradation when unavailable; honest disclosure of the one-time model download + hardware gates (**C3**) | ⬜ |
 
 ## Where we are
 
-**Phase 7 complete** — the options/settings page is built and merged to `main` (80 tests,
-`tsc`-clean, `verify:build` OK): monitoring/cadence/notify controls + per-extension ignore toggles,
-auto-saved, with a pure `reconcileAlarm` + SW `storage.onChanged` making changes take effect live.
-**Phase 8 (integration & in-browser E2E) is next** — the first time the whole extension runs in a
-real browser: load unpacked, exercise popup + options + the guardian via Playwright, and clear the
-deferred robustness/UX cases accumulated across Phases 4–7. The MVP feature set (audit + guardian +
-UIs) is now code-complete; Phases 8–9 are verification + release prep, with Phase 10 (on-device AI)
-the optional progressive enhancement.
+**Phase 8 complete** — the whole extension now runs in a real Chromium under `@playwright/test`
+(80 unit tests + **12 in-browser E2E**, `tsc`-clean, `verify:build` OK). A `launchPersistentContext`
+harness (`channel: 'chromium'`, new headless) loads `dist/` + three real fixture extensions
+(critical/high/low tiers → deterministic fleet grade **F**) and drives popup, options, and the
+guardian through the live `chrome.*` edges, with an auto error-gate failing on any
+`console.error`/`pageerror`. The deferred robustness cases were discharged with the right tool per
+case: **(d)** `notifications.onClicked → openPopup()` (with a tab fallback) built; **(a)** failing
+scans can no longer become terminal unhandled rejections; **(c)** notification `create` is
+crash-guarded; **(b)** the notify-before-persist order is kept and documented as deliberate
+*at-least-once* delivery (a rare duplicate beats a silently dropped security alert); **(e)** the
+420px options layout is E2E-checked, while the managed-state render (needs `mayDisable:false`, i.e.
+enterprise force-install) is covered by `report.test.ts` + a documented limitation rather than an
+un-triggerable in-browser test. **Finding:** `chrome.notifications.getAll()` works in new headless,
+so the planned headed fallback for the guardian notification check was not needed. **Phase 9
+(store-listing readiness) is next.** The MVP (audit + guardian + UIs) is code-complete and
+browser-verified; Phase 9 is release prep, Phase 10 (on-device AI) the optional enhancement.
 
-Two small follow-ups carried forward: the `notifications.onClicked` → open-popup wiring (a SW
-change with `openPopup()` caveats) and the managed-state UX (currently shows a note rather than
-greyed buttons — an intentional simplification to confirm in Phase 8).
+Honest limits carried into the E2E suite (spec §7): the native uninstall confirm dialog can't be
+driven by Playwright, so **Remove** is verified by a narrow page-side spy on
+`chrome.management.uninstall` (the one sanctioned mock); a real notification click isn't automatable,
+so (d) is verified by inspection + SW stability.
 
-The architectural arc so far: Phases 2–3 were pure/near-pure and unit-tested; Phase 4 added the
-`chrome.*` guardian glue; Phase 5 made it all loadable in a browser. From here (Phases 6–7) the
-work is user-facing UI, then Phase 8 exercises the whole thing in a real browser.
+The architectural arc: Phases 2–3 were pure/near-pure and unit-tested; Phase 4 added the `chrome.*`
+guardian glue; Phase 5 made it loadable; Phases 6–7 built the user-facing UI; Phase 8 exercised the
+whole thing in a real browser.
 
 ## Deferred — evidence-gated (design spec §13.2)
 
