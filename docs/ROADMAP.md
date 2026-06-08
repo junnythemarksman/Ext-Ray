@@ -148,6 +148,9 @@ redundant. The endorsed weight values remain frozen.
 - **F2 — guardian empty-`curr` guard** (Phase 4): a transient empty `getAll()` (SW/profile-init race)
   rebases the baseline to `[]`, laundering any change in that window into the "trusted" set. Add a pure
   guard (skip scan + no persist when `curr.length===0 && prev.length>0`) + unit test.
+  *Trade-off (intended):* a genuine uninstall of **every** other extension also reads as empty and is
+  skipped (baseline not updated) until one reappears — benign and self-healing (a removed extension
+  can't act), and the safe choice vs. silently rebasing the baseline to `[]`.
 - **F3 — scoring reason de-dup** (Phase 2): multiple weight-1.0 hosts (`<all_urls>` + `*://*/*`) emit
   the same "all websites" bullet twice on the card. `[...new Set(reasons)]` + regression test.
 - **F4 — `file://` reason label** (Phase 2): `file://` patterns score 1.0 but are mislabeled "all
