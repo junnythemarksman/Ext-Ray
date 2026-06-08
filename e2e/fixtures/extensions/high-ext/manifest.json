@@ -1,0 +1,7 @@
+{
+  "manifest_version": 3,
+  "name": "Fixture High",
+  "version": "1.0.0",
+  "description": "E2E fixture: tabs permission (high tier).",
+  "permissions": ["tabs"]
+}

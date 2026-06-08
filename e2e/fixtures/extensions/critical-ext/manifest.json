@@ -1,0 +1,8 @@
+{
+  "manifest_version": 3,
+  "name": "Fixture Critical",
+  "version": "1.0.0",
+  "description": "E2E fixture: broad host access + scripting (critical tier).",
+  "permissions": ["scripting"],
+  "host_permissions": ["<all_urls>"]
+}
