@@ -86,12 +86,17 @@ Declared metadata only (all Ext-Ray reads), each a single `manifest.json` (MV3, 
 | dir | manifest declares | scored tier |
 |---|---|---|
 | `critical-ext/` | `permissions:["scripting"]`, `host_permissions:["<all_urls>"]` | critical |
-| `high-ext/` | `permissions:["cookies"]` | high |
+| `high-ext/` | `permissions:["tabs"]` | high |
 | `low-ext/` | `permissions:["storage"]` | low |
 
 No background/content scripts — Ext-Ray only consumes declared `permissions`/`host_permissions` and
 `getPermissionWarningsById`, which Chrome computes from the manifest. Ext-Ray filters itself out, so
 these three are the audited fleet with deterministic tiers.
+
+> **Tier note (verified against `scoring/weights.ts`):** unpacked extensions load as
+> `installType: 'development'`, which adds a +0.15 risk bump. So `cookies` (0.7) would reach 0.88 =
+> *critical*, overshooting "high"; `tabs` (0.5) + breadth 0.03 + 0.15 = **0.68 → high**, the clean
+> choice. Critical = 1.0, low (`storage` 0.1 + 0.15 = 0.25), and the fleet grade is deterministically **F**.
 
 ### 3.4 `e2e/*.spec.ts` (new) — see §5.
 
