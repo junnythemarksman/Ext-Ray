@@ -15,6 +15,16 @@ const tGuardian = trace('sec.guardian');
 export const STABILITY_WINDOW_DAYS = 60;
 const DAY_MS = 86_400_000;
 
+/**
+ * A scan is untrustworthy when the live read is empty but we hold a non-empty baseline — almost
+ * always a transient chrome.management.getAll() race during service-worker/profile startup, not a
+ * real mass-uninstall. Acting on it would diff every extension as 'removed' AND rebase the stored
+ * snapshot to [], laundering any concurrent malicious change into a fresh "trusted" baseline. The
+ * caller skips the scan entirely (no evaluate, no notify, no persist), preserving the prior snapshot.
+ */
+export const isUntrustworthyScan = (prev: ExtSnapshot[], curr: ExtSnapshot[]): boolean =>
+  prev.length > 0 && curr.length === 0;
+
 /** A diff-reported capability is a host match pattern (vs an API permission). */
 const isHostPattern = (p: string): boolean => p === '<all_urls>' || p.includes('://');
 

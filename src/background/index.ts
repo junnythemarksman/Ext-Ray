@@ -3,7 +3,7 @@
 // Date.now() lives here (the edge), never in the pure core. Integration-tested in Phase 8.
 
 import { getExtensions } from '../management/management';
-import { evaluateScan } from '../guardian/guardian';
+import { evaluateScan, isUntrustworthyScan } from '../guardian/guardian';
 import { reconcileAlarm } from '../guardian/alarm';
 import { getSnapshot, setSnapshot, getTimestamps, setTimestamps, getSettings, getIgnored, migrate } from '../storage/storage';
 import { trace } from '../debug';
@@ -27,6 +27,13 @@ async function runScan(): Promise<void> {
       getExtensions(), getSnapshot(), getTimestamps(), getSettings(), getIgnored(),
     ]);
     if (!settings.monitoringEnabled) return;
+
+    // A transient empty read (getExtensions() racing SW/profile init) must not rebase the baseline
+    // to []. Skip entirely — no evaluate, notify, or persist — keeping the prior snapshot.
+    if (isUntrustworthyScan(prev, curr)) {
+      if (tSec.enabled) tSec('skipped suspect empty scan', { prevCount: prev.length });
+      return;
+    }
 
     const result = evaluateScan({ prev, curr, timestamps, settings, ignored, now: Date.now() });
 

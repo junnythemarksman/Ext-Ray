@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { ExtSnapshot, Change, ExtTimestamps, Settings } from '../types';
-import { classifySeverity, evaluateScan, STABILITY_WINDOW_DAYS, type ClassifyCtx } from './guardian';
+import { classifySeverity, evaluateScan, isUntrustworthyScan, STABILITY_WINDOW_DAYS, type ClassifyCtx } from './guardian';
 
 const DAY = 86_400_000;
 const NOW = 1_700_000_000_000;
@@ -159,5 +159,25 @@ describe('evaluateScan', () => {
       settings: SETTINGS, ignored: [], now: NOW,
     });
     expect(r.notification?.title).toBe('Ext-Ray: 1 change needs review');
+  });
+});
+
+describe('isUntrustworthyScan', () => {
+  const A = 'a'.repeat(32), B = 'b'.repeat(32);
+
+  it('prev non-empty, curr empty → true (suspect transient race)', () => {
+    expect(isUntrustworthyScan([ext({ id: A }), ext({ id: B })], [])).toBe(true);
+  });
+
+  it('prev non-empty, curr non-empty → false (normal scan)', () => {
+    expect(isUntrustworthyScan([ext({ id: A })], [ext({ id: B })])).toBe(false);
+  });
+
+  it('prev empty, curr empty → false (genuine first run / no baseline)', () => {
+    expect(isUntrustworthyScan([], [])).toBe(false);
+  });
+
+  it('prev empty, curr non-empty → false (normal first population)', () => {
+    expect(isUntrustworthyScan([], [ext({ id: A })])).toBe(false);
   });
 });
