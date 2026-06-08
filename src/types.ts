@@ -129,3 +129,10 @@ export interface ReportView {
   low: ReportRow[];    // worst-first
   counts: { total: number; risky: number; low: number };
 }
+
+// ── Phase 7: options / alarm reconciliation ───────────────────────────────────
+
+export type AlarmAction =
+  | { kind: 'none' }
+  | { kind: 'clear' }
+  | { kind: 'create'; periodInMinutes: number };
