@@ -49,7 +49,9 @@ harness lives entirely under `e2e/`; product code under `src/` changes only for 
 
 - `testDir: 'e2e'`; one project named `chromium`.
 - `workers: 1`, `fullyParallel: false` — the persistent context + extension state is stateful; serial
-  runs are deterministic.
+  runs are deterministic. (Each test-scoped context calls `launchPersistentContext('')` with an empty
+  `userDataDir`, so Playwright assigns a fresh temp profile per launch — no `userDataDir` lock
+  contention, which is the parallel-extension-test failure mode.)
 - `use: { screenshot: 'only-on-failure', trace: 'retain-on-failure' }`.
 - No `globalSetup` for the build; the npm script chains it (§3.6) so `dist/` is fresh and explicit.
 - Channel/headless are set per-test in the fixture (§3.2), not globally, because extension loading
@@ -62,19 +64,20 @@ Chrome-extension pattern (test-scoped for isolation; the context is cheap enough
 
 - `context` — `chromium.launchPersistentContext('', { channel: 'chromium', headless: !process.env.HEADED, args: [`--disable-extensions-except=${paths}`, `--load-extension=${paths}`] })`, where
   `paths` is the comma-joined absolute paths of `dist/` + the three fixture extensions. Closed in teardown.
-- `extensionId` — derived from the Ext-Ray service worker:
-  ```ts
-  let [sw] = context.serviceWorkers();
-  if (!sw) sw = await context.waitForEvent('serviceworker');
-  const extensionId = sw.url().split('/')[2];
-  ```
-  (The fixture extensions have no background service worker, so the only SW is Ext-Ray's.)
+- `extensionId` — derived from the Ext-Ray service worker via a **robust acquisition helper**
+  `getServiceWorker(context)` (see §9 for why the naive snippet is flaky): poll
+  `context.serviceWorkers()` up to a timeout, falling back to `context.waitForEvent('serviceworker')`,
+  then `sw.url().split('/')[2]`. (The fixture extensions have no background service worker, so the
+  only SW is Ext-Ray's.)
 - An **error collector** auto-attached to every page the test opens: `page.on('console', …)` for
   `type === 'error'` and `page.on('pageerror', …)` push into an array asserted empty at test end —
   the cross-cutting "any uncaught error = High severity" gate from the global testing rule.
 
-A small `swEval(context, fn, arg)` helper wraps `serviceWorker.evaluate` for asserting/!seeding SW-side
-state (`chrome.management.get`, `chrome.storage.local`, `chrome.alarms.get`, `chrome.notifications.getAll`).
+A small `swEval(context, fn, arg)` helper wraps `serviceWorker.evaluate` for asserting/seeding SW-side
+state (`chrome.management.get/getAll`, `chrome.storage.local`, `chrome.alarms.get`,
+`chrome.notifications.getAll`). Because the MV3 SW can suspend (§9), `swEval` re-acquires the worker
+each call and **all behavioral assertions go through `expect.poll`** over `chrome.storage`/`getAll`
+(never SW global state), so a mid-flight suspension retries instead of flaking.
 
 ### 3.3 `e2e/fixtures/extensions/` (new) — three real unpacked MV3 fixtures
 
@@ -150,9 +153,14 @@ every page. Screenshots/traces on failure come from config.
   fixture id>, false))` fires the SW's `chrome.management.onDisabled` listener → `scheduleScan()`.
   This both triggers the scan and incidentally exercises the C2 push-event wiring. (Disabling is
   silent — no native dialog.)
-- Await the asynchronous scan with `expect.poll(() => swEval(... chrome.notifications.getAll()))`,
-  then assert one notification exists with the expected batched title/message, and that the stored
-  snapshot was updated to the live set.
+- Assert the deterministic, always-reliable outcome first: `expect.poll(() => swEval(... getSnapshot()))`
+  shows the stored snapshot updated to the live set (this never depends on the OS notification layer).
+- Then assert the notification: `expect.poll(() => swEval(... chrome.notifications.getAll()))` shows one
+  notification with the expected batched title/message. `getAll` reads Chrome's *extension-facing*
+  registry (distinct from the OS toast), so it should populate even in new-headless — but this is
+  **undocumented** (§9). **Contingency:** if `getAll` proves empty under new-headless during
+  implementation, `guardian.spec` runs headed via a project-level `HEADED` override; the snapshot
+  assertion above still holds either way. (Decided at implementation; documented in §7, not guessed now.)
 - **(c)** With the real `icons/icon-128.png` present (it is, in `dist/`), `notifications.create`
   resolves and the SW does not crash; the error collector stays empty. (We assert the happy path is
   icon-safe; the absent-icon rejection is covered by the SW guard in §6, not by deleting a built asset.)
@@ -208,6 +216,10 @@ see §7).
   hack in the test harness.
 - **new-headless extension support** is the supported path; if it regresses in a Chromium build,
   `HEADED=1` is the fallback (`DISPLAY=:0` present).
+- **`chrome.notifications` in new-headless is undocumented** (§9) → `guardian.spec` asserts the
+  storage-snapshot update as its primary, layer-independent signal, and falls back to headed for the
+  `getAll` notification check if needed. The MV3 SW lifecycle (§9) is absorbed by poll-based assertions
+  and a robust SW-acquisition helper, not by `waitForTimeout` sleeps.
 
 ## 8. Scope / non-goals (YAGNI)
 
@@ -217,3 +229,25 @@ see §7).
 - No new product features beyond (d).
 - No exactly-once notification state machine for (b) — the at-least-once trade-off is intentional.
 - Research candidates N1/N3/N4 (peer-group, Nano categorization, runtime-host framing) stay out.
+
+## 9. Test-harness robustness — MV3 SW lifecycle (research-sourced, 2025–26)
+
+A validation pass (Playwright + Chrome primary sources) surfaced lifecycle pitfalls that make the
+naive extension-test recipe flaky. The harness is built to absorb them from the start:
+
+- **The SW suspends after ~30s idle and restarts on demand.** Playwright keeps the same `Worker`
+  object but **emits no new `'serviceworker'` event** on restart, and an `evaluate()` in-flight at the
+  moment of suspension throws `"Service worker restarted"`. → `swEval` re-acquires the worker per call;
+  every behavioral assertion is an `expect.poll` over `chrome.storage`/`getAll` (retries absorb a
+  restart); we never assert on SW global variables. [[Playwright service-workers](https://playwright.dev/docs/service-workers); [Issue #12103](https://github.com/microsoft/playwright/issues/12103)]
+- **Playwright doesn't always attach to the background SW** if Chrome spawns it too early (a known
+  race). → `getServiceWorker(context)` polls `context.serviceWorkers()` with a timeout before falling
+  back to `waitForEvent`, and tests **wake the SW through a real event** (opening the popup page, or the
+  `setEnabled`→`onDisabled` trigger) rather than assuming it is up. [[Issue #39075](https://github.com/microsoft/playwright/issues/39075)]
+- **`--headless=new` is mandatory** for extensions (old headless can't load them); Playwright's
+  `channel: 'chromium'` runs new headless. `chrome.notifications`/`openPopup` behavior in headless is
+  **undocumented by Chrome** → the §5.3 contingency (assert snapshot first; headed fallback for the
+  notification) exists precisely because we can't assume it. [[Chrome e2e testing](https://developer.chrome.com/docs/extensions/how-to/test/end-to-end-testing)]
+- **No onboarding-page hazard here:** Ext-Ray's `onInstalled` runs `init()` and opens **no** tab, so
+  the "first navigation steals focus / hangs on the onboarding page" gotcha doesn't apply; tests use
+  `context.newPage()` and don't depend on the launch's initial page.
