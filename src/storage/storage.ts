@@ -49,6 +49,8 @@ async function write(key: string, value: unknown): Promise<void> {
 }
 
 export const getSnapshot = (): Promise<ExtSnapshot[]> => read(KEYS.snapshot, []);
+// setSnapshot/setTimestamps stay exported for test seeding; production writes go
+// through setSnapshotAndTimestamps (F-01 atomicity).
 export const setSnapshot = (snapshot: ExtSnapshot[]): Promise<void> => write(KEYS.snapshot, snapshot);
 
 export async function getSettings(): Promise<Settings> {

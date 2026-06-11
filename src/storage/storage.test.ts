@@ -147,6 +147,7 @@ describe('atomic snapshot+timestamps write (F-01)', () => {
     const snap = [ext()];
     const ts = { [snap[0]!.id]: { firstSeen: 1, lastVersionChange: 2 } };
     await setSnapshotAndTimestamps(snap, ts);
+    (chrome.storage.local as { set: typeof orig }).set = orig;
     expect(setCalls).toBe(1);
     expect(await getSnapshot()).toEqual(snap);
     expect(await getTimestamps()).toEqual(ts);
