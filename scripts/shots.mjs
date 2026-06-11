@@ -1,6 +1,8 @@
 // Store-screenshot generator (Phase 9 §3.4). Captures the REAL UI over a varied fixture
-// fleet so CWS screenshots match actual behavior by construction. Output: shots/*.png at
-// 1280x800 (640x400 viewport @ deviceScaleFactor 2 — same pixels, sharper text).
+// fleet so CWS screenshots match actual behavior by construction: each page is captured
+// FULL-PAGE at its natural width (nothing below the fold is hidden — honest-limits footer,
+// donation section, all of it), then composed centered on a 1280x800 stage. Content is the
+// untouched capture; only the framing canvas is added. deviceScaleFactor 2 keeps text crisp.
 // Run: npm run shots   (builds dist/ first via the npm script)
 import { chromium } from '@playwright/test';
 import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
@@ -51,18 +53,36 @@ async function sw() {
 const worker = await sw();
 const extId = worker.url().split('/')[2];
 
-async function shoot(rel, file, ready) {
+// Capture the page full-height at its natural content width, then place the untouched
+// capture centered on a 1280x800 dark stage (stage viewport 640x400 @ dsf2 = 1280x800 px).
+async function shoot(rel, file, ready, contentWidth) {
   const page = await context.newPage();
+  await page.setViewportSize({ width: contentWidth, height: 640 });
   await page.goto(`chrome-extension://${extId}/${rel}`);
   await page.waitForSelector(ready);
   await page.waitForTimeout(600); // async fills (permission warnings) settle
-  await page.screenshot({ path: path.join(OUT, file) });
+  const raw = await page.screenshot({ fullPage: true });
   await page.close();
+
+  const stage = await context.newPage();
+  await stage.setViewportSize({ width: 640, height: 400 });
+  await stage.setContent(`<!doctype html><style>
+    body { margin: 0; width: 640px; height: 400px; display: grid; place-items: center;
+      background: radial-gradient(520px 360px at 50% 42%, #1b2740, #0b1220); }
+    img { max-width: 600px; max-height: 376px; border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.55); }
+  </style><img src="data:image/png;base64,${raw.toString('base64')}">`);
+  await stage.waitForFunction(() => {
+    const i = document.querySelector('img');
+    return i && i.complete && i.naturalWidth > 0;
+  });
+  await stage.screenshot({ path: path.join(OUT, file) });
+  await stage.close();
 }
 
-await shoot('popup/index.html', 'popup-1280x800.png', '.report, .error');
-await shoot('options/index.html', 'options-1280x800.png', '.options');
-await shoot('onboarding/index.html', 'onboarding-1280x800.png', '.onboard');
+await shoot('popup/index.html', 'popup-1280x800.png', '.report, .error', 360);
+await shoot('options/index.html', 'options-1280x800.png', '.options', 420);
+await shoot('onboarding/index.html', 'onboarding-1280x800.png', '.onboard', 820);
 
 await context.close();
 console.log(`shots written to ${OUT}: popup-1280x800.png, options-1280x800.png, onboarding-1280x800.png`);
