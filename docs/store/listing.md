@@ -29,7 +29,7 @@ WHAT IT DOES
 
 WHAT IT DOES NOT DO
 • No data collection. No servers, accounts, analytics, or telemetry. Ext-Ray makes zero
-  network requests; nothing you do leaves your browser.
+  automatic network requests; your extension data never leaves your device.
 • No code or traffic inspection. Ext-Ray reads only the metadata extensions declare
   (permissions, version, install source). A high grade means an extension *can* do risky
   things — it is not proof of malice, and Ext-Ray says so in the report.
