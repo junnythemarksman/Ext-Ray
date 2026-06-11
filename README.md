@@ -7,6 +7,8 @@ extension you have installed, grades its security risk in plain English, and qui
 watches for anything that changes _after_ you install it. No backend. No accounts.
 Nothing leaves your browser.
 
+![Ext-Ray popup — fleet grade ring, per-extension risk cards with Chrome's own warning text, one-click Disable/Remove](docs/assets/popup.png)
+
 > **Status:** Submission-ready (Phases 0–9.5 ✅) — scoring, snapshot-diff guardian, popup report
 > with ring-gauge grade + real extension icons, options page, first-run onboarding, a shared
 > OKLCH design system, MV3 build pipeline, a real-Chromium Playwright E2E suite
@@ -23,7 +25,7 @@ Nothing leaves your browser.
 ## Why it exists
 
 Most people run 8–12 extensions but actively use only 2–3. The forgotten ones keep their
-permissions — and the biggest real-world extension attacks of 2024–25 weaponized
+permissions — and the biggest real-world extension attacks of 2024–26 weaponized
 _trusted_ extensions via a silent auto-update. Ext-Ray gives you a one-click read on
 which of your extensions are risky and why, and warns you when one changes.
 
@@ -31,21 +33,22 @@ which of your extensions are risky and why, and warns you when one changes.
 
 Open the popup → see an overall security grade plus a card for each extension (risk tier,
 plain-English reasons, one-click **Disable** / **Remove**). In the background, a guardian
-re-scans on a timer and on install events, and notifies you when an extension is newly
+re-scans on a timer and on extension install/enable/disable/uninstall events, and notifies you when an extension is newly
 installed or **silently changes** after install (new permissions, a version bump after
 long stability, or a publisher change).
 
 ## Architecture
 
-The whole product is **two pure engines** (`scoring`, `snapshot`) wrapped in thin browser
-glue. All real logic is I/O-free and unit-testable; the messy `chrome.*` API surface is
-kept at the edges.
+The whole product is **four pure engines** (`scoring`, `snapshot`, `guardian`, `report`)
+wrapped in thin browser glue. All real logic is I/O-free and unit-testable; the messy
+`chrome.*` API surface is kept at the edges.
 
 ```mermaid
 flowchart TD
     subgraph UI["UI surfaces"]
-        POP["popup — report & risk cards"]
+        POP["popup — grade ring & risk cards"]
         OPT["options — guardian settings"]
+        ONB["onboarding — one-time first-run page"]
     end
 
     subgraph BG["background (service worker)"]
@@ -55,6 +58,8 @@ flowchart TD
     subgraph CORE["pure engines — no I/O, unit-tested"]
         SCORE["scoring — scoreExtension / gradeFleet"]
         DIFF["snapshot — diff"]
+        GUARD["guardian — evaluateScan / reconcileAlarm"]
+        REPORT["report — buildReport view-model"]
     end
 
     STORE["storage — chrome.storage.local wrapper"]
@@ -66,15 +71,18 @@ flowchart TD
         STG["chrome.storage"]
     end
 
-    POP --> SCORE
+    POP --> REPORT
+    REPORT --> SCORE
     POP --> MGMT
     OPT --> STORE
-    SW --> SCORE
-    SW --> DIFF
+    SW --> GUARD
+    GUARD --> DIFF
+    GUARD --> SCORE
     SW --> STORE
     SW --> MGMT
     SW --> ALARM
     SW --> NOTIF
+    SW -->|"opens once on install"| ONB
     STORE --> STG
 ```
 
@@ -121,14 +129,16 @@ sequenceDiagram
 
     User->>Popup: open Ext-Ray
     Popup->>Mgmt: getAll()
-    Mgmt-->>Popup: installed extensions
+    Mgmt-->>Popup: installed extensions (incl. icons)
     loop for each extension
         Popup->>Score: scoreExtension(info)
         Score-->>Popup: tier + reasons
     end
     Popup->>Score: gradeFleet(verdicts)
-    Score-->>Popup: overall grade (A–F)
-    Popup-->>User: grade + risk cards, worst first
+    Score-->>Popup: overall grade (A–F) + word label
+    Popup-->>User: grade ring + risk cards, worst first
+    Popup->>Mgmt: getPermissionWarningsById(id) per risky card
+    Mgmt-->>Popup: Chrome's own warning text (shown on the card)
     User->>Popup: click Disable / Remove
     Popup->>Mgmt: setEnabled() / uninstall()
     Note over Popup,Mgmt: uninstall shows Chrome's native confirm dialog
@@ -145,7 +155,7 @@ sequenceDiagram
     participant Diff as Diff engine
     participant Notif as chrome.notifications
 
-    Trig->>SW: install event or alarm tick
+    Trig->>SW: alarm tick · install/enable/disable/uninstall event · settings change
     SW->>Mgmt: getAll()
     Mgmt-->>SW: current extensions
     SW->>Store: load previous snapshot
@@ -163,7 +173,7 @@ sequenceDiagram
 ### What counts as a "meaningful change"
 
 The guardian deliberately fires on **any silent change after install**, not just new
-permissions — because the largest 2024–25 attacks added _no_ new permissions and instead
+permissions — because the largest 2024–26 attacks added _no_ new permissions and instead
 weaponized already-trusted extensions via an update.
 
 ```mermaid
@@ -224,8 +234,26 @@ a malicious-extension reputation database, and code/behavioral analysis.
 
 ## Development
 
-Vanilla TypeScript + Vite, minimal dependencies (a security tool shouldn't ship a large
-dependency tree). Build/run instructions land with the first implementation milestone.
+Vanilla TypeScript + Vite with **zero runtime dependencies** — a security tool shouldn't
+ship a dependency tree. Dev dependencies are TypeScript, Vite, Vitest, and Playwright.
+
+```bash
+npm install
+npx playwright install chromium   # once — for the e2e suite
+
+npm run verify:build   # two-pass MV3 build + loadable-contract & permission checks
+npm test               # unit tests (pure engines)
+npm run test:e2e       # builds, then drives popup/options/onboarding in real Chromium
+npm run typecheck      # strict tsc, no emit
+npm run shots          # regenerate 1280×800 store screenshots from the real UI
+```
+
+To run it locally: `npm run build`, then `chrome://extensions` → enable **Developer mode**
+→ **Load unpacked** → select the `dist/` folder. The onboarding tab opens once; the popup
+audits whatever extensions that profile has installed.
+
+Design specs and per-phase implementation plans live in [docs/dev/](docs/dev/);
+the live status is [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Donations
 
