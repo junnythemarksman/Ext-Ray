@@ -15,7 +15,7 @@ describe('buildReport', () => {
     expect(r.grade.grade).toBe('A');
     expect(r.risky).toEqual([]);
     expect(r.low).toEqual([]);
-    expect(r.counts).toEqual({ total: 0, risky: 0, low: 0 });
+    expect(r.counts).toEqual({ total: 0, risky: 0, low: 0, trusted: 0 });
   });
 
   it('partitions risky (tier ≥ medium) from low, worst-first', () => {
@@ -25,7 +25,7 @@ describe('buildReport', () => {
     const r = buildReport([low, med, crit]);
     expect(r.risky.map((c) => c.id)).toEqual(['c'.repeat(32), 'm'.repeat(32)]); // score desc
     expect(r.low.map((x) => x.id)).toEqual(['l'.repeat(32)]);
-    expect(r.counts).toEqual({ total: 3, risky: 2, low: 1 });
+    expect(r.counts).toEqual({ total: 3, risky: 2, low: 1, trusted: 0 });
   });
 
   it('passes plain-English reasons through to risky cards', () => {
@@ -76,5 +76,36 @@ describe('buildReport', () => {
     const noIconRow = view.low.find((r) => r.id === 'noicon')!;
     expect(safeRow.iconUrl).toBe('chrome://extension-icon/safe/48');
     expect(noIconRow.iconUrl).toBeUndefined();
+  });
+});
+
+describe('buildReport trusted partitioning', () => {
+  function mk(id: string, perms: string[]): ExtSnapshot {
+    return {
+      id, name: id, version: '1.0.0', enabled: true, type: 'extension',
+      installType: 'normal', permissions: perms, hostPermissions: [],
+      mayDisable: true,
+    };
+  }
+
+  it('excludes trusted extensions from risky/low and from the grade', () => {
+    const crit = mk('crit', ['debugger']);          // would be critical
+    const lowE = mk('low', ['storage']);
+    const view = buildReport([crit, lowE], ['crit']);
+    expect(view.trusted.map((c) => c.id)).toEqual(['crit']);
+    expect(view.risky.find((c) => c.id === 'crit')).toBeUndefined();
+    expect(view.counts).toEqual({ total: 2, risky: 0, low: 1, trusted: 1 });
+    // grade computed over the non-trusted (only the low) → not F
+    expect(view.grade.grade).not.toBe('F');
+  });
+  it('all-trusted fleet grades A with the trusted count', () => {
+    const view = buildReport([mk('a', ['debugger']), mk('b', ['scripting'])], ['a', 'b']);
+    expect(view.grade.grade).toBe('A');
+    expect(view.counts.trusted).toBe(2);
+    expect(view.risky).toHaveLength(0);
+  });
+  it('keeps the risky+low+trusted === total invariant', () => {
+    const view = buildReport([mk('a', ['debugger']), mk('b', ['cookies']), mk('c', ['storage'])], ['b']);
+    expect(view.risky.length + view.low.length + view.trusted.length).toBe(3);
   });
 });
