@@ -77,6 +77,17 @@ async function reconcileAlarmNow(): Promise<void> {
   await applyAlarmAction(reconcileAlarm(settings, existing));
 }
 
+// Serialize reconciles the same way scans are serialized (above). reconcileAlarmNow reads
+// settings + alarm state then mutates the alarm; two concurrent runs from a rapid off→on
+// toggle could interleave at that await so a stale "off" read clears the alarm a fresh "on"
+// run just created — leaving monitoring silently stopped while settings say on. Chaining
+// makes each reconcile see the prior one's committed result.
+let inFlightReconcile: Promise<void> = Promise.resolve();
+function scheduleReconcile(): Promise<void> {
+  inFlightReconcile = inFlightReconcile.catch(() => undefined).then(reconcileAlarmNow);
+  return inFlightReconcile;
+}
+
 async function init(): Promise<void> {
   await migrate();
   await reconcileAlarmNow();
@@ -100,8 +111,9 @@ chrome.management.onEnabled.addListener(() => void scheduleScan());
 chrome.management.onDisabled.addListener(() => void scheduleScan());
 chrome.management.onUninstalled.addListener(() => void scheduleScan());
 // Settings changed (from the options page) → re-reconcile the alarm so it takes effect live.
+// Serialized via scheduleReconcile so a rapid toggle can't race the alarm into a wrong state.
 chrome.storage.onChanged.addListener((changes, areaName) => {
-  if (areaName === 'local' && changes.settings) void reconcileAlarmNow();
+  if (areaName === 'local' && changes.settings) void scheduleReconcile();
 });
 
 // (d) Clicking a change notification opens the report. chrome.action.openPopup() can reject
