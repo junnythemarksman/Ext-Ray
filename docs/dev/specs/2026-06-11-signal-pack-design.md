@@ -78,7 +78,8 @@ What the research **corrected** (vs. the ROADMAP's original framing):
   `'permissions_increase'` is the only actionable value — anything else reads as `unknown` and is
   ignored, per the two-value enum).
 - `Change` union gains:
-  - `{ kind: 'name-changed'; id: string; from: string; to: string }`
+  - `{ kind: 'name-changed'; id: string; name: string; from: string; to: string }` (`name` = the
+    current/post-rename name — every Change kind is self-describing)
   - `{ kind: 'disabled-for-permissions'; id: string; name: string }`
 - `ReportCard` and `ReportRow` gain `signals: string[]` (informational, possibly empty).
 
