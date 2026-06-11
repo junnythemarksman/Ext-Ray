@@ -13,5 +13,5 @@
     "skipLibCheck": true,
     "verbatimModuleSyntax": true
   },
-  "include": ["src", "popup", "options"]
+  "include": ["src", "popup", "options", "onboarding"]
 }

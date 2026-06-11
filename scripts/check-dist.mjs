@@ -44,6 +44,11 @@ for (const rel of referenced) {
   existsSync(resolve(dist, rel)) ? ok(`exists: ${rel}`) : fail(`manifest references missing file: ${rel}`);
 }
 
+// Phase 9: the onboarding page is opened by the SW (not referenced by the manifest).
+existsSync(resolve(dist, 'onboarding/index.html'))
+  ? ok('exists: onboarding/index.html')
+  : fail('onboarding/index.html missing from dist');
+
 const swRel = manifest.background?.service_worker;
 const sw = swRel ? resolve(dist, swRel) : '';
 if (sw && existsSync(sw)) {

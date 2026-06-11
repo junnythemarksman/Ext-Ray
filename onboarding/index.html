@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Welcome to Ext-Ray</title>
+    <link rel="stylesheet" href="./onboarding.css" />
+  </head>
+  <body>
+    <main class="onboard">
+      <header class="hero">
+        <img src="../icons/icon-48.png" alt="" width="48" height="48" />
+        <h1>Ext-Ray is ready</h1>
+        <p class="tagline">Audit the security of your other extensions — entirely on your own device.</p>
+      </header>
+
+      <section class="points">
+        <article class="point">
+          <h2>Read-only by default</h2>
+          <p>Ext-Ray never disables or removes another extension on its own. Nothing changes
+          unless you click a button.</p>
+        </article>
+        <article class="point">
+          <h2>100% on-device</h2>
+          <p>No servers, no accounts, no analytics. Ext-Ray makes zero network requests —
+          nothing you do ever leaves your browser.</p>
+        </article>
+        <article class="point">
+          <h2>About the permission warning</h2>
+          <p>Chrome warned that Ext-Ray can "manage your apps, extensions, and themes."
+          That permission is what lets Ext-Ray <em>read</em> your extension list and Chrome's own
+          warning text to score risk. Ext-Ray only acts on another extension when you ask it to.</p>
+        </article>
+      </section>
+
+      <section class="next">
+        <h2>What happens now</h2>
+        <p>Click the Ext-Ray icon in your toolbar for your first audit. In the background,
+        Ext-Ray re-scans periodically and notifies you if an extension changes in a suspicious
+        way. Tune this in the options page.</p>
+      </section>
+
+      <footer class="foot">
+        <a href="https://junnythemarksman.github.io/ext-ray-privacy/" target="_blank" rel="noreferrer">Privacy policy</a>
+        <button id="done" class="btn">Got it</button>
+      </footer>
+    </main>
+    <script type="module" src="./index.ts"></script>
+  </body>
+</html>

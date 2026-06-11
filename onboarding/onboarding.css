@@ -1,0 +1,21 @@
+:root {
+  --bg: #0f172a; --panel: #1e293b; --text: #e2e8f0; --muted: #94a3b8;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.6 system-ui, sans-serif; background: var(--bg); color: var(--text); }
+.onboard { max-width: 720px; margin: 0 auto; padding: 48px 24px; }
+.hero { text-align: center; margin-bottom: 32px; }
+.hero h1 { margin: 12px 0 4px; font-size: 26px; }
+.tagline { color: var(--muted); margin: 0; }
+.points { display: grid; gap: 12px; }
+.point { background: var(--panel); border-radius: 10px; padding: 16px 18px; }
+.point h2 { margin: 0 0 6px; font-size: 15px; }
+.point p { margin: 0; color: var(--muted); }
+.next { margin-top: 24px; }
+.next h2 { font-size: 15px; margin: 0 0 6px; }
+.next p { margin: 0; color: var(--muted); }
+.foot { margin-top: 32px; display: flex; align-items: center; justify-content: space-between; }
+.foot a { color: var(--muted); }
+.btn { font: inherit; padding: 8px 22px; border-radius: 8px; border: 1px solid #334155;
+  background: #334155; color: var(--text); cursor: pointer; }

@@ -27,7 +27,7 @@ export default defineConfig({
           },
         }
       : {
-          input: { popup: 'popup/index.html', options: 'options/index.html' },
+          input: { popup: 'popup/index.html', options: 'options/index.html', onboarding: 'onboarding/index.html' },
           output: {
             entryFileNames: 'assets/[name]-[hash].js',
             chunkFileNames: 'assets/[name]-[hash].js',
