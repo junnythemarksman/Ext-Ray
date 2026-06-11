@@ -1,21 +1,41 @@
-:root {
-  --bg: #0f172a; --panel: #1e293b; --text: #e2e8f0; --muted: #94a3b8;
-  color-scheme: dark;
-}
+@import '../shared/tokens.css';
+
 * { box-sizing: border-box; }
-body { margin: 0; font: 15px/1.6 system-ui, sans-serif; background: var(--bg); color: var(--text); }
+body { margin: 0; font: 15px/1.6 system-ui, sans-serif;
+  background: var(--er-navy-0); color: var(--er-text); }
 .onboard { max-width: 720px; margin: 0 auto; padding: 48px 24px; }
+
 .hero { text-align: center; margin-bottom: 32px; }
-.hero h1 { margin: 12px 0 4px; font-size: 26px; }
-.tagline { color: var(--muted); margin: 0; }
+.hero img { border-radius: 14px; box-shadow: 0 0 0 1px var(--er-border),
+  0 0 24px 6px var(--er-accent-soft); }
+.hero h1 { margin: 14px 0 4px; font-size: 26px; }
+.tagline { color: var(--er-muted); margin: 0; }
+
 .points { display: grid; gap: 12px; }
-.point { background: var(--panel); border-radius: 10px; padding: 16px 18px; }
+.point { background: var(--er-surface-1); border: 1px solid var(--er-border);
+  border-radius: 12px; padding: 16px 18px 16px 52px; position: relative; }
+.point::before { content: ""; position: absolute; left: 16px; top: 18px;
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 1.5px solid var(--er-accent);
+  background:
+    no-repeat center / 12px 12px
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12"><path d="M2 6.5 5 9.5 10 3" fill="none" stroke="%233EC9D6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+}
 .point h2 { margin: 0 0 6px; font-size: 15px; }
-.point p { margin: 0; color: var(--muted); }
+.point p { margin: 0; color: var(--er-muted); }
+
 .next { margin-top: 24px; }
-.next h2 { font-size: 15px; margin: 0 0 6px; }
-.next p { margin: 0; color: var(--muted); }
+.next h2 { font-size: 15px; margin: 0 0 6px; color: var(--er-accent); }
+.next p { margin: 0; color: var(--er-muted); }
+
 .foot { margin-top: 32px; display: flex; align-items: center; justify-content: space-between; }
-.foot a { color: var(--muted); }
-.btn { font: inherit; padding: 8px 22px; border-radius: 8px; border: 1px solid #334155;
-  background: #334155; color: var(--text); cursor: pointer; }
+.foot a { color: var(--er-muted); }
+.btn { font: inherit; padding: 9px 24px; border-radius: 9px;
+  border: 1px solid var(--er-border-strong);
+  background: var(--er-accent-soft); color: var(--er-text); cursor: pointer; }
+.btn:hover { border-color: var(--er-accent); }
+
+@media (forced-colors: active) {
+  .point, .btn { border: 1px solid ButtonText; box-shadow: none; }
+  .point::before { border-color: ButtonText; }
+}
