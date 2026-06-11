@@ -65,6 +65,30 @@ test('notify toggle and trust toggle persist', async ({ context, extensionId }) 
   await page.close();
 });
 
+test('monitoring off→on recreates the alarm', async ({ context, extensionId }) => {
+  const page = await context.newPage();
+  await page.goto(optionsUrl(extensionId));
+  await page.locator('input[data-setting="monitoring"]').uncheck();
+  await expect
+    .poll(() => swEval<boolean>(context, async (name) => !(await chrome.alarms.get(name)), ALARM))
+    .toBe(true);
+  await page.locator('input[data-setting="monitoring"]').check();
+  await expect
+    .poll(() => swEval<number | null>(context, async (name) => {
+      const a = await chrome.alarms.get(name);
+      return a ? a.periodInMinutes ?? null : null;
+    }, ALARM))
+    .not.toBeNull();
+  await page.close();
+});
+
+test('cadence select shows the 5-minute default on first open', async ({ context, extensionId }) => {
+  const page = await context.newPage();
+  await page.goto(optionsUrl(extensionId));
+  await expect(page.locator('select[data-setting="cadence"]')).toHaveValue('5');
+  await page.close();
+});
+
 test('(e) options layout has no horizontal overflow at 420px', async ({ context, extensionId }) => {
   const page = await context.newPage();
   await page.setViewportSize({ width: 420, height: 700 });

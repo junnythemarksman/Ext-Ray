@@ -131,3 +131,17 @@ test('Trust moves a card into the Trusted section and excludes it from the grade
     .toContain(id);
   await page.close();
 });
+
+test('untrust returns a trusted extension to the graded report', async ({ context, extensionId }) => {
+  const page = await context.newPage();
+  await page.goto(popupUrl(extensionId));
+  const id = await page.locator('article.card').first().getAttribute('data-ext');
+  await page.locator(`article.card[data-ext="${id}"] button[data-action="trust"]`).click();
+  await expect(page.locator(`.trusted-section [data-ext="${id}"]`)).toHaveCount(1);
+  await page.locator(`.trusted-section [data-ext="${id}"] button[data-action="untrust"]`).click();
+  await expect(page.locator(`article.card[data-ext="${id}"]`)).toHaveCount(1);
+  await expect
+    .poll(() => swEval<string[]>(context, async () => (await chrome.storage.local.get('trusted')).trusted ?? []))
+    .not.toContain(id);
+  await page.close();
+});
