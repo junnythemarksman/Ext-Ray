@@ -199,6 +199,18 @@ describe('evaluateScan', () => {
     expect(result.notification).not.toBeNull();
     expect(result.notification!.message).toContain('was disabled: its update requested more permissions');
   });
+
+  it('permissions-added + disabled-for-permissions on one extension yields two classified changes but ONE revokeTrust entry', () => {
+    const prev = [ext({ enabled: true, permissions: [] })];
+    const curr = [ext({ enabled: false, disabledReason: 'permissions_increase', permissions: ['cookies'] })];
+    const result = evaluateScan({
+      prev, curr, timestamps: { [id]: { firstSeen: 0, lastVersionChange: 0 } },
+      settings: { monitoringEnabled: true, scanIntervalMinutes: 5, notify: true },
+      trusted: [id], now: NOW,
+    });
+    expect(result.revokeTrust).toEqual([id]); // deduplicated by the revoked Set
+    expect(result.classified).toHaveLength(2); // both changes are real and user-visible
+  });
 });
 
 describe('trusted', () => {
