@@ -69,6 +69,11 @@ describe('classifySeverity', () => {
     expect(classifySeverity(removedExt, ctx([]))).toBe('info');
   });
 
+  it('a rename is info — identity churn is context, never an alert by itself', () => {
+    const c: Change = { kind: 'name-changed', id, from: 'A', to: 'B' };
+    expect(classifySeverity(c, ctx([ext()]))).toBe('info');
+  });
+
   it('normal install of a high-tier extension is notable', () => {
     const c: Change = { kind: 'installed', id, name: 'X' };
     // 'cookies' alone scores into the high tier (not critical) under a normal install
@@ -162,6 +167,19 @@ describe('evaluateScan', () => {
       settings: SETTINGS, trusted: [], now: NOW,
     });
     expect(r.notification?.title).toBe('Ext-Ray: 1 change needs review');
+  });
+
+  it('a rename of a trusted extension is silenced and does not revoke trust', () => {
+    const prev = [ext({ name: 'Before' })];
+    const curr = [ext({ name: 'After' })];
+    const result = evaluateScan({
+      prev, curr, timestamps: { [id]: { firstSeen: 0, lastVersionChange: 0 } },
+      settings: { monitoringEnabled: true, scanIntervalMinutes: 5, notify: true },
+      trusted: [id], now: NOW,
+    });
+    expect(result.classified).toEqual([]);
+    expect(result.revokeTrust).toEqual([]);
+    expect(result.notification).toBeNull();
   });
 });
 

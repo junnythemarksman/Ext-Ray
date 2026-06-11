@@ -51,6 +51,9 @@ export function diff(prev: ExtSnapshot[], curr: ExtSnapshot[]): Change[] {
     if (before.updateUrl !== e.updateUrl) {
       changes.push({ kind: 'publisher-changed', id: e.id, name: e.name, from: before.updateUrl, to: e.updateUrl });
     }
+    if (before.name !== e.name) {
+      changes.push({ kind: 'name-changed', id: e.id, from: before.name, to: e.name });
+    }
   }
 
   for (const e of prev) {

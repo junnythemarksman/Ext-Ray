@@ -96,4 +96,19 @@ describe('diff', () => {
     const curr = [ext({ id: 'a'.repeat(32), permissions: ['cookies'] }), ext({ id: 'b'.repeat(32) })];
     expect(diff(prev, curr)).toEqual(diff(prev, curr));
   });
+
+  // Signal pack: identity churn (name) is a tracked Change — info severity, paper-backed.
+  it('detects a renamed extension (from → to)', () => {
+    const prev = [ext({ name: 'Honest Tool' })];
+    const curr = [ext({ name: 'Shiny Rebrand' })];
+    expect(diff(prev, curr)).toEqual([
+      { kind: 'name-changed', id: 'a'.repeat(32), from: 'Honest Tool', to: 'Shiny Rebrand' },
+    ]);
+  });
+
+  it('does not report name-changed on first sight (install only)', () => {
+    expect(diff([], [ext({ name: 'Brand New' })])).toEqual([
+      { kind: 'installed', id: 'a'.repeat(32), name: 'Brand New' },
+    ]);
+  });
 });

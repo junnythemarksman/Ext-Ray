@@ -52,6 +52,7 @@ export function classifySeverity(change: Change, ctx: ClassifyCtx): Severity {
       const tier = scoreExtension(ext).tier;
       return tier === 'critical' || tier === 'high' ? 'notable' : 'info';
     }
+    case 'name-changed':
     case 'permissions-removed':
     case 'removed':
       return 'info';
@@ -82,6 +83,7 @@ function describeChange(classified: ClassifiedChange): string {
     case 'permissions-added': return `${change.name} gained: ${change.permissions.join(', ')}`;
     case 'publisher-changed': return `${change.name} changed its update source`;
     case 'version-changed': return `${change.name} updated after a long stable period`;
+    case 'name-changed': return `“${change.from}” was renamed to “${change.to}”`;
     case 'permissions-removed': return `${change.name} removed permissions`;
     case 'removed': return `${change.name} was removed`;
   }
