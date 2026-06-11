@@ -75,6 +75,12 @@ body { margin: 0; width: 360px; font: 13px/1.45 system-ui, sans-serif;
 .warning { margin: 6px 0 0; color: var(--er-muted); font-style: italic; }
 .warning:empty { display: none; }
 
+/* Informational signals — unscored context lane (signal pack); visually distinct from .reason */
+.signal { margin: 4px 0 0; color: var(--er-muted); font-size: 11px; }
+.signal::before { content: 'ℹ '; opacity: .8; }
+.row { flex-wrap: wrap; }
+.row .signal { flex-basis: 100%; margin: 2px 0 0 32px; }
+
 .actions { display: flex; gap: 8px; margin-top: 10px; }
 .btn { font: inherit; font-size: 12px; padding: 4px 12px; border-radius: 7px;
   border: 1px solid var(--er-border-strong); background: var(--er-surface-2);

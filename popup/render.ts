@@ -109,6 +109,7 @@ function renderCard(card: ReportCard): HTMLElement {
   c.append(head);
 
   for (const reason of card.reasons) c.append(el('p', 'reason', reason));
+  for (const signal of card.signals) c.append(el('p', 'signal', signal));
 
   const warning = el('p', 'warning js-warning');
   warning.dataset.id = card.id; // filled by the controller when the browser warning arrives
@@ -124,6 +125,7 @@ function renderRow(row: ReportRow): HTMLElement {
   r.dataset.enabled = String(row.enabled);
   if (!row.enabled) r.classList.add('is-disabled');
   r.append(iconImg(row.iconUrl, 24), el('span', 'dot'), el('span', 'name', row.name));
+  for (const signal of row.signals) r.append(el('p', 'signal', signal));
   r.append(renderActions(row.enabled, row.canDisable));
   return r;
 }
@@ -168,6 +170,7 @@ export function renderReport(view: ReportView, root: HTMLElement): void {
       r.dataset.enabled = String(t.enabled);
       r.append(iconImg(t.iconUrl, 24), el('span', 'dot'), el('span', 'name', t.name),
         el('span', 'tier-label', TIER_LABEL[t.tier]));
+      for (const signal of t.signals) r.append(el('p', 'signal', signal));
       r.append(renderActions(t.enabled, t.canDisable, 'untrust'));
       section.append(r);
     }
