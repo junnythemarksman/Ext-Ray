@@ -25,3 +25,4 @@ yarn-error.log*
 .playwright-mcp/
 playwright-report/
 test-results/
+shots/
