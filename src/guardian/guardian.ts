@@ -52,6 +52,11 @@ export function classifySeverity(change: Change, ctx: ClassifyCtx): Severity {
       const tier = scoreExtension(ext).tier;
       return tier === 'critical' || tier === 'high' ? 'notable' : 'info';
     }
+    case 'disabled-for-permissions':
+      // Chrome itself blocked a permission escalation pending re-approval — the same
+      // class as permissions-added(host), and the only observable of the attempt
+      // (the pending permissions may not appear in permissions[] yet).
+      return 'high';
     case 'name-changed':
     case 'permissions-removed':
     case 'removed':
@@ -86,6 +91,7 @@ function describeChange(classified: ClassifiedChange): string {
     case 'name-changed': return `“${change.from}” was renamed to “${change.to}”`;
     case 'permissions-removed': return `${change.name} removed permissions`;
     case 'removed': return `${change.name} was removed`;
+    case 'disabled-for-permissions': return `${change.name} was disabled: its update requested more permissions`;
   }
 }
 

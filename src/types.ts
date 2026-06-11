@@ -65,7 +65,8 @@ export type Change =
   | { kind: 'permissions-removed'; id: string; name: string; permissions: string[] }
   | { kind: 'version-changed'; id: string; name: string; from: string; to: string }
   | { kind: 'publisher-changed'; id: string; name: string; from?: string; to?: string }
-  | { kind: 'name-changed'; id: string; name: string; from: string; to: string };
+  | { kind: 'name-changed'; id: string; name: string; from: string; to: string }
+  | { kind: 'disabled-for-permissions'; id: string; name: string };
 
 // Guardian configuration (design spec §5.6), persisted via storage/.
 export interface Settings {

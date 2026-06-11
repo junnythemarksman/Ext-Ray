@@ -112,3 +112,32 @@ describe('diff', () => {
     ]);
   });
 });
+
+describe('disabled-for-permissions transition', () => {
+  it('fires when Chrome disables an extension for a permissions increase', () => {
+    const prev = [ext({ enabled: true })];
+    const curr = [ext({ enabled: false, disabledReason: 'permissions_increase' })];
+    expect(diff(prev, curr)).toEqual([
+      { kind: 'disabled-for-permissions', id: 'a'.repeat(32), name: 'Test Extension' },
+    ]);
+  });
+
+  it('does NOT fire for an extension already disabled at first sight (install only)', () => {
+    const curr = [ext({ enabled: false, disabledReason: 'permissions_increase' })];
+    expect(diff([], curr)).toEqual([
+      { kind: 'installed', id: 'a'.repeat(32), name: 'Test Extension' },
+    ]);
+  });
+
+  it('does NOT fire when prev was already disabled (no transition — e.g. the field first appearing after an Ext-Ray update)', () => {
+    const prev = [ext({ enabled: false })];
+    const curr = [ext({ enabled: false, disabledReason: 'permissions_increase' })];
+    expect(diff(prev, curr)).toEqual([]);
+  });
+
+  it('does NOT fire for disabledReason "unknown"', () => {
+    const prev = [ext({ enabled: true })];
+    const curr = [ext({ enabled: false, disabledReason: 'unknown' })];
+    expect(diff(prev, curr)).toEqual([]);
+  });
+});

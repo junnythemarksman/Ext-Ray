@@ -74,6 +74,11 @@ describe('classifySeverity', () => {
     expect(classifySeverity(c, ctx([ext()]))).toBe('info');
   });
 
+  it('disabled-for-permissions is high — Chrome itself confirmed an escalation attempt', () => {
+    const c: Change = { kind: 'disabled-for-permissions', id, name: 'X' };
+    expect(classifySeverity(c, ctx([ext()]))).toBe('high');
+  });
+
   it('normal install of a high-tier extension is notable', () => {
     const c: Change = { kind: 'installed', id, name: 'X' };
     // 'cookies' alone scores into the high tier (not critical) under a normal install
@@ -180,6 +185,19 @@ describe('evaluateScan', () => {
     expect(result.classified).toEqual([]);
     expect(result.revokeTrust).toEqual([]);
     expect(result.notification).toBeNull();
+  });
+
+  it('disabled-for-permissions on a trusted extension alerts AND revokes trust', () => {
+    const prev = [ext({ enabled: true })];
+    const curr = [ext({ enabled: false, disabledReason: 'permissions_increase' })];
+    const result = evaluateScan({
+      prev, curr, timestamps: { [id]: { firstSeen: 0, lastVersionChange: 0 } },
+      settings: { monitoringEnabled: true, scanIntervalMinutes: 5, notify: true },
+      trusted: [id], now: NOW,
+    });
+    expect(result.revokeTrust).toEqual([id]);
+    expect(result.notification).not.toBeNull();
+    expect(result.notification!.message).toContain('was disabled: its update requested more permissions');
   });
 });
 

@@ -54,6 +54,13 @@ export function diff(prev: ExtSnapshot[], curr: ExtSnapshot[]): Change[] {
     if (before.name !== e.name) {
       changes.push({ kind: 'name-changed', id: e.id, name: e.name, from: before.name, to: e.name });
     }
+    // Transition-guarded (spec §4.3): fires only on an OBSERVED enabled→disabled flip with
+    // Chrome's permissions_increase reason. Already-disabled at first sight (or when the
+    // disabledReason field first appears after Ext-Ray's own update) emits nothing — the
+    // state still surfaces via the signals lane.
+    if (before.enabled && !e.enabled && e.disabledReason === 'permissions_increase') {
+      changes.push({ kind: 'disabled-for-permissions', id: e.id, name: e.name });
+    }
   }
 
   for (const e of prev) {
