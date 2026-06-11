@@ -119,14 +119,16 @@ describe('informational signals (signal pack)', () => {
     expect(r.risky[0]!.signals.some((s) => s.includes('outside the official extension store'))).toBe(true);
     expect(r.risky[0]!.signals.some((s) => s.includes('same server (u.example.com)'))).toBe(true);
     expect(r.low[0]!.signals.some((s) => s.includes('outside the official extension store'))).toBe(true);
+    expect(r.low[0]!.signals.some((s) => s.includes('same server (u.example.com)'))).toBe(true);
     expect(r.trusted[0]!.signals).toEqual(['Chrome disabled this extension: an update requested more permissions']);
   });
 
   it('signals never affect the grade', () => {
     const plain = ext({ id: 'a'.repeat(32) });
-    const noted = ext({ id: 'b'.repeat(32), updateUrl: 'https://u.example.com/x.xml' });
-    const bare = ext({ id: 'b'.repeat(32) });
-    expect(buildReport([plain, noted]).grade).toEqual(buildReport([plain, bare]).grade);
+    // b has real permissions so the fleet grade is non-trivial
+    const withSignal = ext({ id: 'b'.repeat(32), permissions: ['tabs'], updateUrl: 'https://u.example.com/x.xml' });
+    const withoutSignal = ext({ id: 'b'.repeat(32), permissions: ['tabs'] });
+    expect(buildReport([plain, withSignal]).grade).toEqual(buildReport([plain, withoutSignal]).grade);
   });
 
   it('defaults to an empty signals array', () => {
