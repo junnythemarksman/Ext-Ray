@@ -5,7 +5,7 @@
 import { getExtensions } from '../management/management';
 import { evaluateScan, isUntrustworthyScan } from '../guardian/guardian';
 import { reconcileAlarm } from '../guardian/alarm';
-import { getSnapshot, setSnapshot, getTimestamps, setTimestamps, getSettings, getTrusted, setTrusted, migrate } from '../storage/storage';
+import { getSnapshot, getTimestamps, setSnapshotAndTimestamps, getSettings, getTrusted, setTrusted, migrate } from '../storage/storage';
 import { trace } from '../debug';
 import type { AlarmAction } from '../types';
 
@@ -52,7 +52,7 @@ async function runScan(): Promise<void> {
         })
         .catch((e) => { if (tSec.enabled) tSec('notify failed', { error: String(e) }); });
     }
-    const writes: Array<Promise<void>> = [setSnapshot(curr), setTimestamps(result.timestamps)];
+    const writes: Array<Promise<void>> = [setSnapshotAndTimestamps(curr, result.timestamps)];
     if (result.revokeTrust.length) {
       const revoke = new Set(result.revokeTrust);
       writes.push(setTrusted(trusted.filter((id) => !revoke.has(id))));

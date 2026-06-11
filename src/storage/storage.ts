@@ -62,6 +62,18 @@ export const getTimestamps = (): Promise<Record<string, ExtTimestamps>> =>
 export const setTimestamps = (timestamps: Record<string, ExtTimestamps>): Promise<void> =>
   write(KEYS.timestamps, timestamps);
 
+/** Atomically persist the COUPLED snapshot + timestamps keys in one storage.set —
+ *  a single LevelDB WriteBatch, all-or-nothing — so an MV3 SW kill between two
+ *  separate writes can never leave snapshot advanced while timestamps lags
+ *  (threat-model F-01: a torn state could under-classify the next version bump). */
+export async function setSnapshotAndTimestamps(
+  snapshot: ExtSnapshot[],
+  timestamps: Record<string, ExtTimestamps>,
+): Promise<void> {
+  await chrome.storage.local.set({ [KEYS.snapshot]: snapshot, [KEYS.timestamps]: timestamps });
+  if (tStore.enabled) tStore('write', { key: 'snapshot+timestamps', items: 2 });
+}
+
 export const getTrusted = (): Promise<string[]> => read(KEYS.trusted, [] as string[]);
 export const setTrusted = (ids: string[]): Promise<void> => write(KEYS.trusted, ids);
 

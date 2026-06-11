@@ -13,6 +13,7 @@ import {
   setTrusted,
   getSchemaVersion,
   migrate,
+  setSnapshotAndTimestamps,
 } from './storage';
 
 // Minimal in-memory fake of chrome.storage.local (spec §9 mocks the chrome.* edge).
@@ -132,5 +133,22 @@ describe('schema versioning', () => {
   it('getTrusted/setTrusted round-trip', async () => {
     await setTrusted(['x']);
     expect(await getTrusted()).toEqual(['x']);
+  });
+});
+
+describe('atomic snapshot+timestamps write (F-01)', () => {
+  it('persists both keys in a single set() call (one WriteBatch — no torn-write window)', async () => {
+    let setCalls = 0;
+    const orig = chrome.storage.local.set.bind(chrome.storage.local);
+    (chrome.storage.local as { set: (items: Record<string, unknown>) => Promise<void> }).set = async (items: Record<string, unknown>) => {
+      setCalls += 1;
+      return orig(items);
+    };
+    const snap = [ext()];
+    const ts = { [snap[0]!.id]: { firstSeen: 1, lastVersionChange: 2 } };
+    await setSnapshotAndTimestamps(snap, ts);
+    expect(setCalls).toBe(1);
+    expect(await getSnapshot()).toEqual(snap);
+    expect(await getTimestamps()).toEqual(ts);
   });
 });
