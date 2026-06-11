@@ -115,6 +115,9 @@ Expected: FAIL — TypeScript error (`'name-changed'` not in the `Change` union)
   | { kind: 'name-changed'; id: string; from: string; to: string }
 ```
 
+> **Executed-as amendment:** review added `name: string` (the post-rename name) to this shape so
+> every Change kind is self-describing — see the spec §4.1 amendment. Emission passes `name: e.name`.
+
 In `src/snapshot/snapshot.ts`, after the `publisher-changed` check inside the loop:
 
 ```ts
