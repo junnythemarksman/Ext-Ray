@@ -97,21 +97,32 @@ function buildNotification(noteworthy: ClassifiedChange[]): { title: string; mes
 }
 
 export function evaluateScan(input: ScanInput): ScanResult {
-  const { prev, curr, timestamps, settings, ignored, now } = input;
+  const { prev, curr, timestamps, settings, trusted, now } = input;
   const changes = diff(prev, curr);
   const newTimestamps = nextTimestamps(timestamps, curr, changes, now);
 
   // First run / baseline: establish silently, no notification storm (spec §6, §8).
   if (prev.length === 0) {
     if (tGuardian.enabled) tGuardian('baseline established', { curr: curr.length });
-    return { timestamps: newTimestamps, classified: [], notification: null };
+    return { timestamps: newTimestamps, classified: [], notification: null, revokeTrust: [] };
   }
 
-  const ignoredSet = new Set(ignored);
+  const trustedSet = new Set(trusted);
   const ctx: ClassifyCtx = { currById: new Map(curr.map((e) => [e.id, e])), prevTimestamps: timestamps, now };
-  const classified: ClassifiedChange[] = changes
-    .filter((c) => !ignoredSet.has(c.id))
-    .map((change) => ({ change, severity: classifySeverity(change, ctx) }));
+
+  const classified: ClassifiedChange[] = [];
+  const revokeTrust: string[] = [];
+  const revoked = new Set<string>();
+  for (const change of changes) {
+    const severity = classifySeverity(change, ctx);
+    if (trustedSet.has(change.id)) {
+      // Trusted: silence benign (info) churn; a material change (notable/high) still alerts AND
+      // voids trust so the extension reappears at its true tier next scan.
+      if (severity === 'info') continue;
+      if (!revoked.has(change.id)) { revoked.add(change.id); revokeTrust.push(change.id); }
+    }
+    classified.push({ change, severity });
+  }
 
   const noteworthy = classified.filter((c) => c.severity !== 'info');
   const notification = settings.notify ? buildNotification(noteworthy) : null;
@@ -119,8 +130,8 @@ export function evaluateScan(input: ScanInput): ScanResult {
   if (tGuardian.enabled) {
     tGuardian('scan evaluated', {
       changes: classified.length, noteworthy: noteworthy.length, notified: notification !== null,
-      suppressed: changes.length - classified.length,
+      revoked: revokeTrust.length, suppressed: changes.length - classified.length,
     });
   }
-  return { timestamps: newTimestamps, classified, notification };
+  return { timestamps: newTimestamps, classified, notification, revokeTrust };
 }

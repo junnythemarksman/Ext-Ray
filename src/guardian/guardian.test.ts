@@ -84,21 +84,24 @@ describe('evaluateScan', () => {
   it('first run (empty prev) establishes a silent baseline — no notification', () => {
     const r = evaluateScan({
       prev: [], curr: [ext({ id: A, hostPermissions: ['<all_urls>'] })],
-      timestamps: {}, settings: SETTINGS, ignored: [], now: NOW,
+      timestamps: {}, settings: SETTINGS, trusted: [], now: NOW,
     });
     expect(r.notification).toBeNull();
     expect(r.classified).toEqual([]);
     expect(r.timestamps[A]).toEqual({ firstSeen: NOW, lastVersionChange: NOW });
   });
 
-  it('suppresses changes for ignored extensions', () => {
+  it('suppresses info-level changes for trusted extensions', () => {
+    // A version bump within the stability window is info; trusted extensions silence info churn.
     const r = evaluateScan({
-      prev: [ext({ id: A })], curr: [ext({ id: A, hostPermissions: ['<all_urls>'] })],
-      timestamps: { [A]: { firstSeen: 0, lastVersionChange: 0 } },
-      settings: SETTINGS, ignored: [A], now: NOW,
+      prev: [ext({ id: A, version: '1.0.0' })],
+      curr: [ext({ id: A, version: '1.0.1' })],
+      timestamps: { [A]: { firstSeen: 0, lastVersionChange: NOW - 1 } }, // recent → info
+      settings: SETTINGS, trusted: [A], now: NOW,
     });
     expect(r.classified).toEqual([]);
     expect(r.notification).toBeNull();
+    expect(r.revokeTrust).toEqual([]);
   });
 
   it('batches multiple noteworthy changes into one notification', () => {
@@ -106,7 +109,7 @@ describe('evaluateScan', () => {
       prev: [ext({ id: A }), ext({ id: B, updateUrl: 'http://old' })],
       curr: [ext({ id: A, hostPermissions: ['<all_urls>'] }), ext({ id: B, updateUrl: 'http://new' })],
       timestamps: { [A]: { firstSeen: 0, lastVersionChange: 0 }, [B]: { firstSeen: 0, lastVersionChange: 0 } },
-      settings: SETTINGS, ignored: [], now: NOW,
+      settings: SETTINGS, trusted: [], now: NOW,
     });
     expect(r.notification?.title).toBe('Ext-Ray: 2 changes need review');
   });
@@ -115,7 +118,7 @@ describe('evaluateScan', () => {
     const r = evaluateScan({
       prev: [ext({ id: A })], curr: [ext({ id: A, hostPermissions: ['<all_urls>'] })],
       timestamps: { [A]: { firstSeen: 0, lastVersionChange: 0 } },
-      settings: { ...SETTINGS, notify: false }, ignored: [], now: NOW,
+      settings: { ...SETTINGS, notify: false }, trusted: [], now: NOW,
     });
     expect(r.notification).toBeNull();
     expect(r.classified).toHaveLength(1);
@@ -126,7 +129,7 @@ describe('evaluateScan', () => {
       prev: [ext({ id: A, version: '1.0.0' }), ext({ id: B })],
       curr: [ext({ id: A, version: '2.0.0' }), ext({ id: C })],
       timestamps: { [A]: { firstSeen: 100, lastVersionChange: 100 }, [B]: { firstSeen: 200, lastVersionChange: 200 } },
-      settings: SETTINGS, ignored: [], now: NOW,
+      settings: SETTINGS, trusted: [], now: NOW,
     });
     expect(r.timestamps[A]).toEqual({ firstSeen: 100, lastVersionChange: NOW }); // bump
     expect(r.timestamps[C]).toEqual({ firstSeen: NOW, lastVersionChange: NOW }); // new
@@ -137,7 +140,7 @@ describe('evaluateScan', () => {
     const input = {
       prev: [ext({ id: A })], curr: [ext({ id: A, hostPermissions: ['<all_urls>'] })],
       timestamps: { [A]: { firstSeen: 0, lastVersionChange: 0 } },
-      settings: SETTINGS, ignored: [], now: NOW,
+      settings: SETTINGS, trusted: [], now: NOW,
     };
     expect(evaluateScan(input)).toEqual(evaluateScan(input));
   });
@@ -147,7 +150,7 @@ describe('evaluateScan', () => {
     const prev = ids.map((id) => ext({ id }));
     const curr = ids.map((id) => ext({ id, hostPermissions: ['<all_urls>'] }));
     const timestamps = Object.fromEntries(ids.map((id) => [id, { firstSeen: 0, lastVersionChange: 0 }]));
-    const r = evaluateScan({ prev, curr, timestamps, settings: SETTINGS, ignored: [], now: NOW });
+    const r = evaluateScan({ prev, curr, timestamps, settings: SETTINGS, trusted: [], now: NOW });
     expect(r.notification?.title).toBe('Ext-Ray: 6 changes need review');
     expect(r.notification?.message).toContain('…and 1 more');
   });
@@ -156,9 +159,42 @@ describe('evaluateScan', () => {
     const r = evaluateScan({
       prev: [ext({ id: A })], curr: [ext({ id: A, hostPermissions: ['<all_urls>'] })],
       timestamps: { [A]: { firstSeen: 0, lastVersionChange: 0 } },
-      settings: SETTINGS, ignored: [], now: NOW,
+      settings: SETTINGS, trusted: [], now: NOW,
     });
     expect(r.notification?.title).toBe('Ext-Ray: 1 change needs review');
+  });
+});
+
+describe('trusted', () => {
+  const T = 't'.repeat(32);
+  const N = 'n'.repeat(32);
+  const notifyOn: Settings = { monitoringEnabled: true, scanIntervalMinutes: 5, notify: true };
+
+  // info-level churn for a trusted extension is silenced and does NOT revoke trust
+  it('suppresses info changes for a trusted extension without revoking trust', () => {
+    const prev = [ext({ id: T, version: '1.0.0' })];
+    const curr = [ext({ id: T, version: '1.0.1' })]; // version bump, no prior stability stamp → info
+    const r = evaluateScan({ prev, curr, timestamps: {}, settings: notifyOn, trusted: [T], now: 0 });
+    expect(r.classified).toHaveLength(0);
+    expect(r.revokeTrust).toEqual([]);
+    expect(r.notification).toBeNull();
+  });
+  // a MATERIAL change (host expansion) for a trusted extension alerts AND revokes trust
+  it('alerts and revokes trust on a material change to a trusted extension', () => {
+    const prev = [ext({ id: T, permissions: [], hostPermissions: [] })];
+    const curr = [ext({ id: T, permissions: ['scripting'], hostPermissions: ['<all_urls>'] })];
+    const r = evaluateScan({ prev, curr, timestamps: {}, settings: notifyOn, trusted: [T], now: 0 });
+    expect(r.revokeTrust).toEqual([T]);
+    expect(r.classified.some((c) => c.severity === 'high')).toBe(true);
+    expect(r.notification).not.toBeNull();
+  });
+  // non-trusted extensions are unaffected
+  it('does not revoke or suppress for non-trusted extensions', () => {
+    const prev = [ext({ id: N, permissions: [] })];
+    const curr = [ext({ id: N, permissions: ['cookies'] })];
+    const r = evaluateScan({ prev, curr, timestamps: {}, settings: notifyOn, trusted: [], now: 0 });
+    expect(r.revokeTrust).toEqual([]);
+    expect(r.classified).toHaveLength(1);
   });
 });
 
