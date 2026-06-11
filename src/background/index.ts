@@ -79,7 +79,15 @@ async function init(): Promise<void> {
 
 // Listeners registered synchronously at top level (MV3 requirement, spec §4.4).
 chrome.runtime.onStartup.addListener(() => void init());
-chrome.runtime.onInstalled.addListener(() => void init());
+chrome.runtime.onInstalled.addListener((details) => {
+  void init();
+  // First-run onboarding (Phase 9): once per INSTALL only — never on update/reload.
+  // tabs.create needs no permission; a failure must never break init.
+  if (details.reason === 'install') {
+    chrome.tabs.create({ url: chrome.runtime.getURL('onboarding/index.html') })
+      .catch((e) => { if (tSec.enabled) tSec('onboarding open failed', { error: String(e) }); });
+  }
+});
 chrome.alarms.onAlarm.addListener((alarm) => { if (alarm.name === ALARM_NAME) void scheduleScan(); });
 chrome.management.onInstalled.addListener(() => void scheduleScan());
 chrome.management.onEnabled.addListener(() => void scheduleScan());
