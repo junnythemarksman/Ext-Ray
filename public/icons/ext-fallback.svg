@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <rect x="1" y="1" width="30" height="30" rx="7" fill="oklch(0.28 0.05 250)"/>
+  <path fill="oklch(0.75 0.15 195)" d="M13 7h6a1 1 0 0 1 1 1v3h2.5a2.5 2.5 0 1 1 0 5H20v3h3a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4v-2.5a2.5 2.5 0 1 0-5 0V25H9a1 1 0 0 1-1-1v-6h2.5a2.5 2.5 0 1 0 0-5H8V8a1 1 0 0 1 1-1h4z" opacity="0.9"/>
+</svg>
