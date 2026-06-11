@@ -6,6 +6,9 @@
 // id → 0–3 short plain-English strings. O(N) over the fleet; deterministic; no clock.
 
 import type { ExtSnapshot } from '../types';
+import { trace } from '../debug';
+
+const tSignals = trace('calc.signals');
 
 /** Official store update hosts — Chrome Web Store and Edge Add-ons (Ext-Ray runs on both;
  *  allowlisting only CWS would flag an entire Edge fleet — alert-fatigue by design error). */
@@ -26,11 +29,14 @@ function updateHost(updateUrl: string | undefined): string | null {
 /** Informational, unscored signals per extension. Every input id gets an entry (possibly []). */
 export function fleetSignals(snapshots: ExtSnapshot[]): Map<string, string[]> {
   // Pass 1: group ids by non-store update host for the cluster signal.
+  // '' (malformed) still gets the non-store note in pass 2 but never clusters.
   const byHost = new Map<string, string[]>();
   for (const e of snapshots) {
     const host = updateHost(e.updateUrl);
-    if (host !== null && !STORE_HOSTS.has(host)) {
-      byHost.set(host, [...(byHost.get(host) ?? []), e.id]);
+    if (host !== null && host !== '' && !STORE_HOSTS.has(host)) {
+      let group = byHost.get(host);
+      if (!group) byHost.set(host, (group = []));
+      group.push(e.id);
     }
   }
 
@@ -48,6 +54,7 @@ export function fleetSignals(snapshots: ExtSnapshot[]): Map<string, string[]> {
           ? 'Updates from outside the official extension store (enterprise-managed installs commonly self-host)'
           : 'Updates from outside the official extension store',
       );
+      // For a malformed ('') host there is no byHost entry — ?? 1 yields peers = 0, no cluster line.
       const peers = (byHost.get(host)?.length ?? 1) - 1;
       if (peers >= 1) {
         signals.push(
@@ -57,5 +64,12 @@ export function fleetSignals(snapshots: ExtSnapshot[]): Map<string, string[]> {
     }
     out.set(e.id, signals);
   }
+
+  if (tSignals.enabled) {
+    let withSignals = 0;
+    for (const s of out.values()) if (s.length > 0) withSignals += 1;
+    tSignals('fleet signals computed', { n: snapshots.length, withSignals, clusteredHosts: byHost.size });
+  }
+
   return out;
 }

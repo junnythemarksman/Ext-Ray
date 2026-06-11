@@ -52,6 +52,14 @@ describe('fleetSignals', () => {
     expect(s.get('a'.repeat(32))).toEqual(['Updates from outside the official extension store']);
   });
 
+  it('never clusters malformed updateUrls — an empty hostname is not a server identity', () => {
+    const a = ext({ id: 'a'.repeat(32), updateUrl: 'not a url' });
+    const b = ext({ id: 'b'.repeat(32), updateUrl: 'also not a url' });
+    const s = fleetSignals([a, b]);
+    expect(s.get('a'.repeat(32))).toEqual(['Updates from outside the official extension store']);
+    expect(s.get('b'.repeat(32))).toEqual(['Updates from outside the official extension store']);
+  });
+
   it('flags a shared non-store host on every member of the cluster', () => {
     const a = ext({ id: 'a'.repeat(32), updateUrl: 'https://u.example.com/a.xml' });
     const b = ext({ id: 'b'.repeat(32), updateUrl: 'https://u.example.com/b.xml' });
