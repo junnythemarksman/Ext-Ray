@@ -70,7 +70,7 @@ describe('classifySeverity', () => {
   });
 
   it('a rename is info — identity churn is context, never an alert by itself', () => {
-    const c: Change = { kind: 'name-changed', id, from: 'A', to: 'B' };
+    const c: Change = { kind: 'name-changed', id, name: 'B', from: 'A', to: 'B' };
     expect(classifySeverity(c, ctx([ext()]))).toBe('info');
   });
 

@@ -102,7 +102,7 @@ describe('diff', () => {
     const prev = [ext({ name: 'Honest Tool' })];
     const curr = [ext({ name: 'Shiny Rebrand' })];
     expect(diff(prev, curr)).toEqual([
-      { kind: 'name-changed', id: 'a'.repeat(32), from: 'Honest Tool', to: 'Shiny Rebrand' },
+      { kind: 'name-changed', id: 'a'.repeat(32), name: 'Shiny Rebrand', from: 'Honest Tool', to: 'Shiny Rebrand' },
     ]);
   });
 

@@ -52,7 +52,7 @@ export function diff(prev: ExtSnapshot[], curr: ExtSnapshot[]): Change[] {
       changes.push({ kind: 'publisher-changed', id: e.id, name: e.name, from: before.updateUrl, to: e.updateUrl });
     }
     if (before.name !== e.name) {
-      changes.push({ kind: 'name-changed', id: e.id, from: before.name, to: e.name });
+      changes.push({ kind: 'name-changed', id: e.id, name: e.name, from: before.name, to: e.name });
     }
   }
 
