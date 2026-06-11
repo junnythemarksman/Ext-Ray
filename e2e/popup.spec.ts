@@ -98,3 +98,20 @@ test('an already-disabled extension renders dimmed (.is-disabled) on load', asyn
   await expect(page.locator(`article.card[data-ext="${id}"]`)).toHaveClass(/is-disabled/);
   await page.close();
 });
+
+test('grade word label reads At Risk for the F fleet', async ({ context, extensionId }) => {
+  const page = await context.newPage();
+  await page.goto(popupUrl(extensionId));
+  await expect(page.locator('.grade-word')).toHaveText('At Risk');
+  await page.close();
+});
+
+test('cards and rows render extension icons (fallback for iconless fixtures)', async ({ context, extensionId }) => {
+  const page = await context.newPage();
+  await page.goto(popupUrl(extensionId));
+  // 2 risky cards + 1 low row = 3 icon imgs; fixtures declare no icons -> bundled fallback.
+  await expect(page.locator('img.ext-icon')).toHaveCount(3);
+  const srcs = await page.locator('img.ext-icon').evaluateAll((els) => els.map((e) => e.getAttribute('src')));
+  for (const src of srcs) expect(src).toContain('ext-fallback.svg');
+  await page.close();
+});
