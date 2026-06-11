@@ -27,6 +27,7 @@ function normalize(e: chrome.management.ExtensionInfo): ExtSnapshot {
     hostPermissions: e.hostPermissions ?? [],
     mayDisable: e.mayDisable,
     updateUrl: e.updateUrl,
+    disabledReason: e.disabledReason,
     iconUrl: pickBestIcon(e.icons, 48),
   };
 }

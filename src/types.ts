@@ -20,6 +20,11 @@ export interface ExtSnapshot {
   /** Best icon URL (chrome://extension-icon/…) picked at the management edge; display-only —
    *  never part of diff() change detection (internal URLs may churn). */
   iconUrl?: string;
+  /** chrome.management ExtensionInfo.disabledReason — enum is exactly 'unknown' |
+   *  'permissions_increase'. Only 'permissions_increase' is actionable (Chrome itself
+   *  disabled the extension because an update requested more permissions). Optional +
+   *  additive: old stored snapshots lack it; no schema migration needed. */
+  disabledReason?: string;
 }
 
 export type Tier = 'critical' | 'high' | 'medium' | 'low';
