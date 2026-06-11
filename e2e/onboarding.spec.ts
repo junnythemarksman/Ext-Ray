@@ -17,7 +17,7 @@ test('onboarding tab auto-opens on install and renders the reassurances', async 
   await expect(page.locator('.point h2').nth(0)).toHaveText('Read-only by default');
   await expect(page.locator('.point h2').nth(1)).toHaveText('100% on-device');
   await expect(page.locator('.foot a')).toHaveAttribute(
-    'href', 'https://junnythemarksman.github.io/ext-ray-privacy/');
+    'href', 'https://junnythemarksman.github.io/Ext-Ray/privacy/');
 
   // Got it → the tab closes itself (window.close works: the SW opened this tab).
   await page.locator('#done').click();

@@ -18,7 +18,7 @@ Nothing leaves your browser.
 >
 > On install, Ext-Ray opens a one-time onboarding page explaining its read-only, 100 %-on-device
 > model and why it needs the `management` permission. Privacy policy:
-> <https://junnythemarksman.github.io/ext-ray-privacy/>.
+> <https://junnythemarksman.github.io/Ext-Ray/privacy/>.
 
 ## Why it exists
 
@@ -237,3 +237,7 @@ bc1qux0rkwceymkq6nzya8wzzamj0amus6l35pzeq2
 ```
 
 (Also available under **Support Ext-Ray** at the bottom of the extension's options page.)
+
+## License
+
+[GPL-3.0](LICENSE) — free to use, study, and modify; derivative works must remain open source.

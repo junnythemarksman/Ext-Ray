@@ -31,7 +31,7 @@ active review backlog means budgeting 1–2+ weeks. Sources: [program policies](
    moment of maximum anxiety. Supersedes the Phase 8 spec §9 note that Ext-Ray "opens no tab."
 3. **Privacy policy lives in the dedicated public repo `ext-ray-privacy` (Q3, owner-directed),**
    already authored and pushed (finalized 2026-06-11 with contact `extray.support@gmail.com`).
-   Served via GitHub Pages at `https://junnythemarksman.github.io/ext-ray-privacy/` once the owner
+   Served via GitHub Pages at `https://junnythemarksman.github.io/Ext-Ray/privacy/` once the owner
    enables Pages. The main repo does NOT duplicate the policy; the listing doc references the URL.
 4. **Store screenshots are generated from the real product (Q4).** A `npm run shots` script drives
    the existing Playwright harness (dist + a varied fixture fleet) and captures the popup, options,

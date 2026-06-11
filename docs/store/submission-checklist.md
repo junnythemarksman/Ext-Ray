@@ -15,10 +15,9 @@ in execution order. Sources are 2025–26 CWS primary docs.
       [Trader disclosure](https://developer.chrome.com/docs/webstore/program-policies/trader-disclosure)
 
 ## Privacy plumbing
-- [ ] **Create the `extray.support@gmail.com` address** (it does not exist yet) — it is the
-      published contact on the privacy policy.
-- [ ] **Enable GitHub Pages** on `ext-ray-privacy`: Settings → Pages → Deploy from branch →
-      `main` / root. Verify https://junnythemarksman.github.io/ext-ray-privacy/ renders.
+- [x] `extray.support@gmail.com` exists — it is the published contact on the privacy policy.
+- [x] GitHub Pages serves the policy from THIS repo (`main` branch, `/docs` folder):
+      https://junnythemarksman.github.io/Ext-Ray/privacy/ — verify it renders before submitting.
 - [ ] Paste that URL into the dashboard's per-item **privacy policy** field.
 
 ## Dashboard fields (paste from docs/store/listing.md)

@@ -40,7 +40,7 @@ PERMISSIONS, PLAINLY
   possible. • Storage — your settings and the latest snapshot, kept locally. • Alarms — the
   background re-scan schedule. • Notifications — change alerts.
 
-Privacy policy: https://junnythemarksman.github.io/ext-ray-privacy/
+Privacy policy: https://junnythemarksman.github.io/Ext-Ray/privacy/
 
 ## Category
 Tools (owner confirms in dashboard)

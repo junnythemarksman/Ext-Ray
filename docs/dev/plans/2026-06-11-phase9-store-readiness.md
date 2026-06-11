@@ -85,7 +85,7 @@
       </section>
 
       <footer class="foot">
-        <a href="https://junnythemarksman.github.io/ext-ray-privacy/" target="_blank" rel="noreferrer">Privacy policy</a>
+        <a href="https://junnythemarksman.github.io/Ext-Ray/privacy/" target="_blank" rel="noreferrer">Privacy policy</a>
         <button id="done" class="btn">Got it</button>
       </footer>
     </main>
@@ -215,7 +215,7 @@ test('onboarding tab auto-opens on install and renders the reassurances', async 
   await expect(page.locator('.point h2').nth(0)).toHaveText('Read-only by default');
   await expect(page.locator('.point h2').nth(1)).toHaveText('100% on-device');
   await expect(page.locator('.foot a')).toHaveAttribute(
-    'href', 'https://junnythemarksman.github.io/ext-ray-privacy/');
+    'href', 'https://junnythemarksman.github.io/Ext-Ray/privacy/');
 
   // Got it → the tab closes itself (window.close works: the SW opened this tab).
   await page.locator('#done').click();
@@ -390,7 +390,7 @@ PERMISSIONS, PLAINLY
   possible. • Storage — your settings and the latest snapshot, kept locally. • Alarms — the
   background re-scan schedule. • Notifications — change alerts.
 
-Privacy policy: https://junnythemarksman.github.io/ext-ray-privacy/
+Privacy policy: https://junnythemarksman.github.io/Ext-Ray/privacy/
 
 ## Category
 Tools (owner confirms in dashboard)
@@ -480,7 +480,7 @@ in execution order. Sources are 2025–26 CWS primary docs.
 - [ ] **Create the `extray.support@gmail.com` address** (it does not exist yet) — it is the
       published contact on the privacy policy.
 - [ ] **Enable GitHub Pages** on `ext-ray-privacy`: Settings → Pages → Deploy from branch →
-      `main` / root. Verify https://junnythemarksman.github.io/ext-ray-privacy/ renders.
+      `main` / root. Verify https://junnythemarksman.github.io/Ext-Ray/privacy/ renders.
 - [ ] Paste that URL into the dashboard's per-item **privacy policy** field.
 
 ## Dashboard fields (paste from docs/store/listing.md)
@@ -535,7 +535,7 @@ queued post-Phase-9 "signal pack" from the audit/delta sections.
 
 - [ ] **Step 3: README** — update the Status blurb: Phases 0–9 ✅, submission-ready; add one
 line under the install/usage area noting the first-run onboarding page and linking the
-privacy policy (https://junnythemarksman.github.io/ext-ray-privacy/).
+privacy policy (https://junnythemarksman.github.io/Ext-Ray/privacy/).
 
 - [ ] **Step 4: Commit**
 

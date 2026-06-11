@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
+  "license": "GPL-3.0-only",
   "description": "Local-only Chromium (MV3) extension that audits your other extensions' security — on-device, no backend.",
   "scripts": {
     "build": "vite build && BUILD_TARGET=sw vite build",
