@@ -62,9 +62,6 @@ export const getTimestamps = (): Promise<Record<string, ExtTimestamps>> =>
 export const setTimestamps = (timestamps: Record<string, ExtTimestamps>): Promise<void> =>
   write(KEYS.timestamps, timestamps);
 
-export const getIgnored = (): Promise<string[]> => read('ignored', [] as string[]);
-export const setIgnored = (ids: string[]): Promise<void> => write('ignored', ids);
-
 export const getTrusted = (): Promise<string[]> => read(KEYS.trusted, [] as string[]);
 export const setTrusted = (ids: string[]): Promise<void> => write(KEYS.trusted, ids);
 

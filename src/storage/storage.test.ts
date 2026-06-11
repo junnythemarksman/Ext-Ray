@@ -9,8 +9,6 @@ import {
   setSettings,
   getTimestamps,
   setTimestamps,
-  getIgnored,
-  setIgnored,
   getTrusted,
   setTrusted,
   getSchemaVersion,
@@ -104,17 +102,6 @@ describe('timestamps persistence', () => {
     };
     await setTimestamps(ts);
     expect(await getTimestamps()).toEqual(ts);
-  });
-});
-
-describe('ignore list persistence', () => {
-  it('defaults to an empty list', async () => {
-    expect(await getIgnored()).toEqual([]);
-  });
-
-  it('round-trips the ignore list', async () => {
-    await setIgnored(['a'.repeat(32), 'b'.repeat(32)]);
-    expect(await getIgnored()).toEqual(['a'.repeat(32), 'b'.repeat(32)]);
   });
 });
 
