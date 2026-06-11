@@ -7,9 +7,11 @@ extension you have installed, grades its security risk in plain English, and qui
 watches for anything that changes _after_ you install it. No backend. No accounts.
 Nothing leaves your browser.
 
-> **Status:** Implementation in progress — the two pure engines (`scoring`, `snapshot`)
-> are built and unit-tested; the `chrome.*` glue (background, popup, options) is next.
-> See the [design spec](docs/superpowers/specs/2026-06-05-ext-ray-design.md).
+> **Status:** Feature-complete and browser-verified (Phases 0–8 ✅) — scoring, snapshot-diff
+> guardian, popup report, options page, MV3 build pipeline, and a real-Chromium Playwright E2E
+> suite (86 unit + 13 e2e tests). Phase 9 (store-listing readiness) is in progress.
+> See [docs/ROADMAP.md](docs/ROADMAP.md) for live status and the
+> [design spec](docs/superpowers/specs/2026-06-05-ext-ray-design.md) for the architecture.
 
 ## Why it exists
 

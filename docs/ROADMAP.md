@@ -56,7 +56,9 @@ In-scope but parked until evidence justifies the false-positive cost:
 - Composite `scripting` + broad-host capability flag (label "common in legitimate tools").
 - Per-axis score decomposition in the report (host breadth as its own axis).
 - "Republished under a new name" identity-churn heuristic.
-- `updateUrl`-anomaly on first scan.
+- ~~`updateUrl`-anomaly on first scan.~~ **Evidence arrived (2026-06-11) → promoted to the queued
+  signal pack** (see the delta pass below): the Feb–Mar 2026 ownership-transfer attacks
+  (QuickLens/ShotBird) rotated `updateUrl` to attacker infrastructure post-sale.
 - Optional `enabled-changed` Change kind — flag a *silent re-enable* of a disabled extension (low signal; enable/disable is normally user-driven, and the guardian already re-scans on `onEnabled`/`onDisabled`).
 
 ## Candidate enhancements (research-sourced)
@@ -127,7 +129,8 @@ signal today — re-check the CWS listing/API surface before concluding it's unu
 don't build on:** "minimal permissions carry no discriminative signal" (0-3); "declared metadata is
 more evasion-robust than code analysis" (0-3).
 
-**Adopt-next (recommended order):** N2 (cheap weight-table win) → N1 (headline differentiator, after a
+**Adopt-next (recommended order):** N2 ✅ **adopted 2026-06-08** (`weights.ts` `userScripts: 0.9` +
+regression test) → N1 (headline differentiator, after a
 viability spike) → N3 (folds into Phase 10) → N4 (copy refinement). N1/N3 warrant their own brainstorm
 → spec → plan cycle; N2/N4 are small tunings.
 
@@ -163,7 +166,18 @@ redundant. The endorsed weight values remain frozen.
   (zero-false-positive, Chrome-set, dominant 2025–26 footprint; [mgmt API](https://developer.chrome.com/docs/extensions/reference/api/management)) ·
   event-driven version detection via `management.onInstalled` + stored-version diff (closes the
   silent-update→next-scan window) · **`name-changed` Change kind** — the first concrete increment of
-  the deferred **C5**, at informational severity.
+  the deferred **C5**, at informational severity — *now empirically grounded:* malicious developers
+  churn identifying metadata significantly more than legitimate ones
+  ([MADWeb/NDSS 2026](https://madweb.work/papers/2026/madweb26-paper27.pdf)) ·
+  **non-CWS `updateUrl` flag** (promoted from §13.2, evidence 2026): an extension whose `updateUrl`
+  isn't `clients2.google.com` self-hosts its updates — the ownership-transfer-attack footprint
+  (QuickLens/ShotBird; [Hacker News, Mar 2026](https://thehackernews.com/2026/03/chrome-extension-turns-malicious-after.html));
+  informational reason in scoring (the guardian already rates the *change* high) ·
+  **shared-`updateUrl` cluster flag**: two-plus installed extensions sharing one non-CWS update
+  domain = likely single operator (108-extension MaaS cluster;
+  [Socket, Apr 2026](https://socket.dev/blog/108-chrome-ext-linked-to-data-exfil-session-theft-shared-c2));
+  O(N) within the fleet from data already in `ExtSnapshot` — the first evidence-backed *relative*
+  signal (lightweight cousin of N1).
 - **Test backfill batch** (regression pins on already-correct, frozen-weight behavior): installType
   `other`/`admin`, single-extension `gradeFleet`, `updateUrl` edge cases, `migrate()` downgrade guard,
   `version-changed`-with-no-history, `reconcileAlarm` clamp idempotency; E2E un-ignore + monitoring
@@ -172,6 +186,25 @@ redundant. The endorsed weight values remain frozen.
   called; the "toggle logging without redeploy" path isn't wired end-to-end) — decide: wire a DEV-only
   hook or delete. Narrowing `ExtSnapshot.installType` to the `chrome.management` literal union is
   low-value (nothing reads `.type`).
+
+### Delta pass (2026-06-11) — what changed since the audit
+
+A four-scout follow-up (repo delta + threat intel + platform + papers, Dec 2025–Jun 2026 window)
+confirmed F1–F5 shipped intact and added the two `updateUrl` signals above. Other notes:
+- **Calibration anchor:** ~16 % of CWS extensions (by install share) perform third-party tracking,
+  and broad declared host patterns are predictive *without* runtime analysis
+  ([AXECC, ACM TOPS Apr 2026](https://dl.acm.org/doi/10.1145/3805701)) — validates the scoring
+  approach; if our high-risk flag rate is near that band, we're calibrated, not over-sensitive.
+- **`chrome.management` gained no new fields/events through Chrome 148** — the queued
+  `disabledReason` signal remains the freshest API surface.
+- **Phase 10 planning note:** Chrome 148's Prompt API adds `responseConstraint` (JSON-schema
+  structured output) + multimodal input; feature-gate it (extensions baseline is still Chrome 138)
+  ([Chrome 148](https://developer.chrome.com/blog/new-in-chrome-148)).
+- **Phase 9 process notes:** privacy policy is now set **per-item** in the dashboard; active CWS
+  review backlog (budget 1–2+ weeks); team roles + private enterprise publishing now exist
+  ([extensions I/O 2026](https://developer.chrome.com/blog/extensions-io-2026)).
+- **Recommended packaging:** implement the five queued signals + test backfill as one small
+  post-Phase-9 "signal pack" phase; nothing here blocks store readiness.
 
 ### Refuted — checked, do NOT build
 - No re-adding `debugger`/`proxy`/`nativeMessaging`/`userScripts` weights (already present, frozen,
