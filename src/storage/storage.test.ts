@@ -134,6 +134,14 @@ describe('schema versioning', () => {
     await setTrusted(['x']);
     expect(await getTrusted()).toEqual(['x']);
   });
+
+  it('migrate() never downgrades — a future schema version is left untouched', async () => {
+    await chrome.storage.local.set({ schemaVersion: 99, trusted: ['x'] });
+    await migrate();
+    const all = await chrome.storage.local.get(null);
+    expect(all.schemaVersion).toBe(99);
+    expect(all.trusted).toEqual(['x']);
+  });
 });
 
 describe('atomic snapshot+timestamps write (F-01)', () => {

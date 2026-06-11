@@ -84,6 +84,11 @@ describe('classifySeverity', () => {
     // 'cookies' alone scores into the high tier (not critical) under a normal install
     expect(classifySeverity(c, ctx([ext({ permissions: ['cookies'] })]))).toBe('notable');
   });
+
+  it('version bump with no stored history is info — a first-tracked change is not "after stability"', () => {
+    const c: Change = { kind: 'version-changed', id, name: 'X', from: '1', to: '2' };
+    expect(classifySeverity(c, ctx([ext()], {}))).toBe('info');
+  });
 });
 
 const SETTINGS: Settings = { monitoringEnabled: true, scanIntervalMinutes: 5, notify: true };

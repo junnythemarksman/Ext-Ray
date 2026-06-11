@@ -110,6 +110,22 @@ describe('scoreExtension', () => {
     expect(v.reasons).toContain('Requests "unknownPermissionXYZ"');
     expect(v.reasons).not.toContain('Minimal permissions — low risk');
   });
+
+  // Backfill pins (frozen weights — these document existing behavior)
+  it('bumps risk for installType "other" but not for enterprise "admin"', () => {
+    const base = { permissions: ['storage'] };
+    const normal = scoreExtension(ext({ ...base, installType: 'normal' }));
+    const other = scoreExtension(ext({ ...base, installType: 'other' }));
+    const admin = scoreExtension(ext({ ...base, installType: 'admin' }));
+    expect(other.score).toBeGreaterThan(normal.score);
+    expect(admin.score).toBe(normal.score);
+  });
+
+  it('ignores updateUrl entirely — provenance is a signal, not a score input', () => {
+    const plain = scoreExtension(ext({ permissions: ['tabs'] }));
+    const selfHosted = scoreExtension(ext({ permissions: ['tabs'], updateUrl: 'https://u.example.com/x.xml' }));
+    expect(selfHosted).toEqual(plain);
+  });
 });
 
 describe('gradeFleet', () => {
@@ -136,5 +152,9 @@ describe('gradeFleet', () => {
 
   it('always returns a fleet score within [0, 1]', () => {
     expect(gradeFleet([verdict(1), verdict(1), verdict(1)]).score).toBeLessThanOrEqual(1);
+  });
+
+  it('grades a single-extension fleet at exactly that extension score', () => {
+    expect(gradeFleet([verdict(0.42)]).score).toBe(0.42);
   });
 });
