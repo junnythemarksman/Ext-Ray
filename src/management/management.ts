@@ -4,6 +4,17 @@
 
 import type { ExtSnapshot } from '../types';
 
+/** Smallest declared icon ≥ target px, else the largest available (HiDPI-friendly).
+ *  Never icons[0] (manifest order is usually smallest-first); never hand-built URLs. */
+export function pickBestIcon(
+  icons: Array<{ size: number; url: string }> | undefined,
+  target: number,
+): string | undefined {
+  if (!icons || icons.length === 0) return undefined;
+  const sorted = [...icons].sort((a, b) => a.size - b.size);
+  return (sorted.find((i) => i.size >= target) ?? sorted[sorted.length - 1])!.url;
+}
+
 function normalize(e: chrome.management.ExtensionInfo): ExtSnapshot {
   return {
     id: e.id,
@@ -16,6 +27,7 @@ function normalize(e: chrome.management.ExtensionInfo): ExtSnapshot {
     hostPermissions: e.hostPermissions ?? [],
     mayDisable: e.mayDisable,
     updateUrl: e.updateUrl,
+    iconUrl: pickBestIcon(e.icons, 48),
   };
 }
 

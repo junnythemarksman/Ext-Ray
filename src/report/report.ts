@@ -25,12 +25,14 @@ export function buildReport(snapshots: ExtSnapshot[]): ReportView {
       low.push({
         id: snapshot.id, name: snapshot.name, tier: verdict.tier,
         enabled: snapshot.enabled, canDisable: snapshot.mayDisable,
+        iconUrl: snapshot.iconUrl,
       });
     } else {
       risky.push({
         id: snapshot.id, name: snapshot.name, version: snapshot.version, tier: verdict.tier,
         score: verdict.score, reasons: verdict.reasons,
         enabled: snapshot.enabled, canDisable: snapshot.mayDisable,
+        iconUrl: snapshot.iconUrl,
       });
     }
   }

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { getExtensions } from './management';
+import { getExtensions, pickBestIcon } from './management';
 import { getPermissionWarningsById, setEnabled, uninstall } from './management';
 
 const SELF_ID = 's'.repeat(32);
@@ -69,5 +69,30 @@ describe('management actions', () => {
     };
     await uninstall('b'.repeat(32));
     expect(calls).toEqual([['b'.repeat(32), { showConfirmDialog: true }]]);
+  });
+});
+
+// Research caveats encoded: never icons[0] naively; guard undefined/empty; prefer the
+// smallest icon ≥ target; else the largest available.
+describe('pickBestIcon', () => {
+  const icon = (size: number) => ({ size, url: `chrome://extension-icon/x/${size}` });
+
+  it('returns undefined for undefined input', () => {
+    expect(pickBestIcon(undefined, 48)).toBeUndefined();
+  });
+  it('returns undefined for an empty array', () => {
+    expect(pickBestIcon([], 48)).toBeUndefined();
+  });
+  it('picks the exact size when present', () => {
+    expect(pickBestIcon([icon(16), icon(48), icon(128)], 48)).toContain('/48');
+  });
+  it('picks the smallest size ≥ target (not the largest)', () => {
+    expect(pickBestIcon([icon(16), icon(64), icon(128)], 48)).toContain('/64');
+  });
+  it('falls back to the largest when all are smaller than target', () => {
+    expect(pickBestIcon([icon(16), icon(32)], 48)).toContain('/32');
+  });
+  it('does not assume input order (sorts internally)', () => {
+    expect(pickBestIcon([icon(128), icon(16), icon(64)], 48)).toContain('/64');
   });
 });

@@ -59,4 +59,22 @@ describe('buildReport', () => {
     const r = buildReport([quiet, tabby]);
     expect(r.low.map((x) => x.id)).toEqual(['b'.repeat(32), 'a'.repeat(32)]); // 0.2 before 0.1
   });
+
+  it('plumbs iconUrl through to risky cards and low rows', () => {
+    const withIcon = (id: string, perms: string[], iconUrl?: string): ExtSnapshot => ({
+      id, name: id, version: '1.0.0', enabled: true, type: 'extension',
+      installType: 'normal', permissions: perms, hostPermissions: [],
+      mayDisable: true, iconUrl,
+    });
+    const view = buildReport([
+      withIcon('risky', ['debugger'], 'chrome://extension-icon/risky/48'),
+      withIcon('safe', ['storage'], 'chrome://extension-icon/safe/48'),
+      withIcon('noicon', ['storage']),
+    ]);
+    expect(view.risky[0]!.iconUrl).toBe('chrome://extension-icon/risky/48');
+    const safeRow = view.low.find((r) => r.id === 'safe')!;
+    const noIconRow = view.low.find((r) => r.id === 'noicon')!;
+    expect(safeRow.iconUrl).toBe('chrome://extension-icon/safe/48');
+    expect(noIconRow.iconUrl).toBeUndefined();
+  });
 });

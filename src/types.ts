@@ -17,6 +17,9 @@ export interface ExtSnapshot {
   hostPermissions: string[];
   mayDisable: boolean;
   updateUrl?: string;
+  /** Best icon URL (chrome://extension-icon/…) picked at the management edge; display-only —
+   *  never part of diff() change detection (internal URLs may churn). */
+  iconUrl?: string;
 }
 
 export type Tier = 'critical' | 'high' | 'medium' | 'low';
@@ -113,6 +116,7 @@ export interface ReportCard {
   reasons: string[];
   enabled: boolean;
   canDisable: boolean; // = mayDisable
+  iconUrl?: string;
 }
 
 export interface ReportRow {
@@ -121,6 +125,7 @@ export interface ReportRow {
   tier: Tier;          // 'low'
   enabled: boolean;
   canDisable: boolean;
+  iconUrl?: string;
 }
 
 export interface ReportView {
