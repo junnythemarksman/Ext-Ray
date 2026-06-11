@@ -48,20 +48,20 @@ test('cadence change recreates the alarm with the new period', async ({ context,
   await page.close();
 });
 
-test('notify toggle and ignore toggle persist', async ({ context, extensionId }) => {
+test('notify toggle and trust toggle persist', async ({ context, extensionId }) => {
   const page = await context.newPage();
   await page.goto(optionsUrl(extensionId));
 
   await page.locator('input[data-setting="notify"]').uncheck();
   await expect.poll(async () => (await getSettings(context)).notify).toBe(false);
 
-  // Ignore the first listed extension.
-  const firstIgnore = page.locator('input[data-ignore]').first();
-  const ignoredId = await firstIgnore.getAttribute('data-ignore');
-  await firstIgnore.check();
+  // Trust the first listed extension.
+  const firstTrust = page.locator('input[data-trust]').first();
+  const trustedId = await firstTrust.getAttribute('data-trust');
+  await firstTrust.check();
   await expect
-    .poll(() => swEval<string[]>(context, async () => (await chrome.storage.local.get('ignored')).ignored ?? []))
-    .toContain(ignoredId);
+    .poll(() => swEval<string[]>(context, async () => (await chrome.storage.local.get('trusted')).trusted ?? []))
+    .toContain(trustedId);
   await page.close();
 });
 

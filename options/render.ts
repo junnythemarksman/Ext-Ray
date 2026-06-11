@@ -47,10 +47,10 @@ function cadenceRow(current: number): HTMLElement {
   return row;
 }
 
-function ignoreRow(ext: ExtSnapshot, ignored: boolean): HTMLElement {
+function trustRow(ext: ExtSnapshot, trusted: boolean): HTMLElement {
   const row = el('label', 'row');
-  const box = checkbox(ignored);
-  box.dataset.ignore = ext.id;
+  const box = checkbox(trusted);
+  box.dataset.trust = ext.id;
   row.append(box, el('span', 'label', ext.name));
   return row;
 }
@@ -58,10 +58,10 @@ function ignoreRow(ext: ExtSnapshot, ignored: boolean): HTMLElement {
 export function renderOptions(
   settings: Settings,
   extensions: ExtSnapshot[] | null, // null = couldn't read the extension list
-  ignored: string[],
+  trusted: string[],
   root: HTMLElement,
 ): void {
-  const ignoredSet = new Set(ignored);
+  const trustedSet = new Set(trusted);
   root.className = 'options';
   root.replaceChildren();
 
@@ -71,13 +71,13 @@ export function renderOptions(
   root.append(settingRow('notify', 'Notify me when something changes', settings.notify));
 
   const section = el('section', 'ignore-section');
-  section.append(el('h2', 'section-title', 'Ignore alerts from'));
+  section.append(el('h2', 'section-title', 'Trusted (alerts only if they change)'));
   if (extensions === null) {
     section.append(el('p', 'note', 'Couldn’t read your extensions.'));
   } else if (extensions.length === 0) {
     section.append(el('p', 'note', 'No other extensions installed.'));
   } else {
-    for (const ext of extensions) section.append(ignoreRow(ext, ignoredSet.has(ext.id)));
+    for (const ext of extensions) section.append(trustRow(ext, trustedSet.has(ext.id)));
   }
   root.append(section);
 

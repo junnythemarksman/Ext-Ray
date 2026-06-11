@@ -3,14 +3,14 @@
 // change to storage. No unit tests (chrome.* + DOM glue) — exercised in Phase 8.
 
 import { getExtensions } from '../src/management/management';
-import { getSettings, setSettings, getIgnored, setIgnored } from '../src/storage/storage';
+import { getSettings, setSettings, getTrusted, setTrusted } from '../src/storage/storage';
 import { renderOptions } from './render';
 import type { Settings, ExtSnapshot } from '../src/types';
 
 const root = document.getElementById('app') as HTMLElement;
 
 let settings: Settings;
-let ignored: string[];
+let trusted: string[];
 
 root.addEventListener('change', (e) => void onChange(e));
 root.addEventListener('click', (e) => void onCopy(e));
@@ -32,7 +32,7 @@ async function onCopy(e: Event): Promise<void> {
 async function onChange(e: Event): Promise<void> {
   const target = e.target as HTMLInputElement & HTMLSelectElement;
   const setting = target.dataset.setting;
-  const ignoreId = target.dataset.ignore;
+  const trustId = target.dataset.trust;
 
   if (setting === 'monitoring') {
     settings = { ...settings, monitoringEnabled: target.checked };
@@ -43,19 +43,19 @@ async function onChange(e: Event): Promise<void> {
   } else if (setting === 'cadence') {
     settings = { ...settings, scanIntervalMinutes: Number(target.value) };
     await setSettings(settings);
-  } else if (ignoreId) {
-    ignored = target.checked
-      ? [...new Set([...ignored, ignoreId])]
-      : ignored.filter((id) => id !== ignoreId);
-    await setIgnored(ignored);
+  } else if (trustId) {
+    trusted = target.checked
+      ? [...new Set([...trusted, trustId])]
+      : trusted.filter((id) => id !== trustId);
+    await setTrusted(trusted);
   }
 }
 
 async function load(): Promise<void> {
   settings = await getSettings();
-  ignored = await getIgnored();
+  trusted = await getTrusted();
   const extensions: ExtSnapshot[] | null = await getExtensions().catch(() => null);
-  renderOptions(settings, extensions, ignored, root);
+  renderOptions(settings, extensions, trusted, root);
 }
 
 void load();
