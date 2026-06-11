@@ -22,6 +22,7 @@ flow → §9 testing → §10 distribution). One phase, one coherent slice of th
 | **9 — Store-listing readiness** | Privacy policy + Limited Use disclosure (finalized in the public `ext-ray-privacy` repo, GitHub Pages), first-run **onboarding page** opened once on install (pre-empts the `management` warning; no new permission), `npm run shots` (behavior-matching 1280×800 store screenshots), `docs/store/` (listing copy + dashboard answers, trademark clear-but-provisional verdict, owner-only submission checklist) (spec §10) | ✅ |
 | **9.5 — UI refresh** | Brand restyle of all three surfaces: shared OKLCH token system (`shared/tokens.css`), SVG ring gauge (`role=meter`, grade-mapped arc, word labels A Excellent → F At Risk), risk pills, **real extension icons** via `ExtensionInfo.icons` (research-verified, zero new permissions, pure `pickBestIcon` + fallback silhouette), WCAG 2.2 AA contrast/focus/forced-colors/reduced-motion gates. E2E selector contract preserved; product now matches the store screenshots + promo art. | ✅ |
 | **9.6 — Trusted extensions** | Per-extension **Trust** (set from the popup card): trusted extensions collapse into a "Trusted" section and are **excluded from the A–F grade** (shown transparently in the header), but the guardian keeps watching and **auto-revokes trust + re-alerts on any material change** (`notable`/`high`). Replaces the prior full-mute ignore list (storage `ignored`→`trusted`, v2 migration), remediating the threat-model concern that ignoring an extension hid even a malicious update. Pure-core (`guardian` `revokeTrust`, `report` partition + grade-exclude); follows the snooze-with-re-alert pattern (AWS Security Hub / Snyk). | ✅ |
+| **9.7 — Signal pack** | Four declared-metadata **informational signals** in an unscored lane (pure `signals/` engine): Chrome's own `permissions_increase` disable (new high-severity `disabled-for-permissions` Change + state note), `name-changed` Change (info), non-store update source, shared-update-host cluster — plus F-01 (atomic snapshot+timestamps write), F-02 (awaited `alarms.create`), and the test backfill. Research-revised scope: *event-driven version detection dropped — already built* (`chrome.management` has no `onUpdated` event; baseline-diff on `onInstalled` is the documented ceiling), and the updateUrl signals are provenance context, not detectors (the 2026 ownership-transfer and 108-extension campaigns shipped via the normal CWS channel). | ✅ |
 | **10 — On-device AI explanations** *(progressive enhancement, built last)* | Chrome built-in AI (Prompt + Summarizer, Gemini Nano) for local plain-English risk explanations, layered **over C1** with graceful degradation when unavailable; honest disclosure of the one-time model download + hardware gates (**C3**); feature-gate Chrome 148 `responseConstraint` structured output (delta pass 2026-06-11) | ◀ **next** |
 
 ## Where we are
@@ -166,7 +167,9 @@ redundant. The endorsed weight values remain frozen.
   opacity until toggled; apply the class on first render in `renderCard`/`renderRow`.
 
 ### Queued — verified, constraint-clean, not yet scheduled
-- **Net-new declared-metadata signals (ship informational):** `disabledReason==='permissions_increase'`
+- ~~**Net-new declared-metadata signals (ship informational)**~~ → **shipped as Phase 9.7** (see the
+  phase table; event-driven version detection was found already-built during design research):
+  `disabledReason==='permissions_increase'`
   (zero-false-positive, Chrome-set, dominant 2025–26 footprint; [mgmt API](https://developer.chrome.com/docs/extensions/reference/api/management)) ·
   event-driven version detection via `management.onInstalled` + stored-version diff (closes the
   silent-update→next-scan window) · **`name-changed` Change kind** — the first concrete increment of
@@ -185,7 +188,7 @@ redundant. The endorsed weight values remain frozen.
 - **Test backfill batch** (regression pins on already-correct, frozen-weight behavior): installType
   `other`/`admin`, single-extension `gradeFleet`, `updateUrl` edge cases, `migrate()` downgrade guard,
   `version-changed`-with-no-history, `reconcileAlarm` clamp idempotency; E2E un-ignore + monitoring
-  off→on recreation + initial cadence default.
+  off→on recreation + initial cadence default. → **shipped in Phase 9.7.**
 - **Hygiene:** `refreshDebug()` + its mutable registry appear to be **dead code** (exported, never
   called; the "toggle logging without redeploy" path isn't wired end-to-end) — decide: wire a DEV-only
   hook or delete. Narrowing `ExtSnapshot.installType` to the `chrome.management` literal union is

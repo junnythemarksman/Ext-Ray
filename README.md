@@ -9,10 +9,10 @@ Nothing leaves your browser.
 
 ![Ext-Ray popup — fleet grade ring, per-extension risk cards with Chrome's own warning text, one-click Disable/Remove](docs/assets/popup.png)
 
-> **Status:** Submission-ready (Phases 0–9.6 ✅) — scoring, snapshot-diff guardian, popup report
+> **Status:** Submission-ready (Phases 0–9.7 ✅) — scoring, snapshot-diff guardian, popup report
 > with ring-gauge grade + real extension icons, options page, first-run onboarding, a shared
 > OKLCH design system, MV3 build pipeline, a real-Chromium Playwright E2E suite
-> (101 unit + 17 e2e tests), store screenshots (`npm run shots`), and the `docs/store/` submission
+> (135 unit + 20 e2e tests), store screenshots (`npm run shots`), and the `docs/store/` submission
 > kit. Remaining steps are owner-external (see
 > [docs/store/submission-checklist.md](docs/store/submission-checklist.md)).
 > See [docs/ROADMAP.md](docs/ROADMAP.md) for live status and the
@@ -42,9 +42,13 @@ publisher change).
 
 ## Architecture
 
-The whole product is **four pure engines** (`scoring`, `snapshot`, `guardian`, `report`)
-wrapped in thin browser glue. All real logic is I/O-free and unit-testable; the messy
-`chrome.*` API surface is kept at the edges.
+The whole product is **five pure engines** (`scoring`, `snapshot`, `guardian`, `report`,
+`signals`) wrapped in thin browser glue. All real logic is I/O-free and unit-testable; the
+messy `chrome.*` API surface is kept at the edges.
+
+A fifth engine, `signals/`, adds **unscored informational context** — non-store update
+sources, shared update hosts, Chrome's own permissions-increase disables — in its own
+muted lane, without ever touching the risk score.
 
 ```mermaid
 flowchart TD
@@ -63,6 +67,7 @@ flowchart TD
         DIFF["snapshot — diff"]
         GUARD["guardian — evaluateScan / reconcileAlarm"]
         REPORT["report — buildReport view-model"]
+        SIG["signals/ — informational lane"]
     end
 
     STORE["storage — chrome.storage.local wrapper"]
@@ -76,6 +81,7 @@ flowchart TD
 
     POP --> REPORT
     REPORT --> SCORE
+    REPORT --> SIG
     POP --> MGMT
     OPT --> STORE
     SW --> GUARD

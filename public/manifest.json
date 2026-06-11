@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Ext-Ray",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Audit the security of your other browser extensions — entirely on your own device.",
   "minimum_chrome_version": "120",
   "permissions": ["management", "storage", "alarms", "notifications"],
