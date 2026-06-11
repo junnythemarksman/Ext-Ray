@@ -22,14 +22,14 @@ import { trace } from '../debug';
 const tStore = trace('perf.storage');
 
 /** Bump when the persisted shape changes, and add a step in migrate(). */
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 const KEYS = {
   schemaVersion: 'schemaVersion',
   snapshot: 'snapshot',
   settings: 'settings',
   timestamps: 'timestamps',
-  ignored: 'ignored',
+  trusted: 'trusted',
 } as const;
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -62,20 +62,29 @@ export const getTimestamps = (): Promise<Record<string, ExtTimestamps>> =>
 export const setTimestamps = (timestamps: Record<string, ExtTimestamps>): Promise<void> =>
   write(KEYS.timestamps, timestamps);
 
-export const getIgnored = (): Promise<string[]> => read(KEYS.ignored, [] as string[]);
-export const setIgnored = (ids: string[]): Promise<void> => write(KEYS.ignored, ids);
+export const getIgnored = (): Promise<string[]> => read('ignored', [] as string[]);
+export const setIgnored = (ids: string[]): Promise<void> => write('ignored', ids);
+
+export const getTrusted = (): Promise<string[]> => read(KEYS.trusted, [] as string[]);
+export const setTrusted = (ids: string[]): Promise<void> => write(KEYS.trusted, ids);
 
 /** 0 = uninitialized (no prior install); otherwise the stamped schema version. */
 export const getSchemaVersion = (): Promise<number> => read(KEYS.schemaVersion, 0);
 
 /**
- * Bring stored data up to SCHEMA_VERSION. Idempotent — safe to call on every
- * service-worker startup. v0→v1 is a no-op stamp (the initial shape); future
- * shape changes add a step here.
+ * Bring stored data up to SCHEMA_VERSION. Idempotent — safe on every SW startup.
+ * v1→v2 renames the legacy `ignored` list to `trusted` (the closest-meaning carry-over:
+ * an extension the user chose to silence becomes one they trust, now with re-alert-on-change).
  */
 export async function migrate(): Promise<void> {
   const from = await getSchemaVersion();
   if (from >= SCHEMA_VERSION) return;
-  // (future: if (from < N) { ...transform... })
+  if (from < 2) {
+    const legacy = await read<string[] | undefined>('ignored', undefined);
+    if (legacy !== undefined) {
+      await write(KEYS.trusted, legacy);
+      await chrome.storage.local.remove('ignored');
+    }
+  }
   await write(KEYS.schemaVersion, SCHEMA_VERSION);
 }

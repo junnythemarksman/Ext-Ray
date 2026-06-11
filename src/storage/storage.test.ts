@@ -11,6 +11,8 @@ import {
   setTimestamps,
   getIgnored,
   setIgnored,
+  getTrusted,
+  setTrusted,
   getSchemaVersion,
   migrate,
 } from './storage';
@@ -21,8 +23,8 @@ import {
 function installFakeChrome(): Record<string, unknown> {
   const store: Record<string, unknown> = {};
   const local = {
-    async get(keys?: string | string[]) {
-      if (keys === undefined) return { ...store };
+    async get(keys?: string | string[] | null) {
+      if (keys === undefined || keys === null) return { ...store };
       const list = Array.isArray(keys) ? keys : [keys];
       const out: Record<string, unknown> = {};
       for (const k of list) if (k in store) out[k] = store[k];
@@ -130,5 +132,18 @@ describe('schema versioning', () => {
     await migrate();
     await migrate();
     expect(await getSchemaVersion()).toBe(SCHEMA_VERSION);
+  });
+
+  it('migrate v1→v2 renames ignored→trusted and removes the old key', async () => {
+    await chrome.storage.local.set({ schemaVersion: 1, ignored: ['a', 'b'] });
+    await migrate();
+    const all = await chrome.storage.local.get(null);
+    expect(all.trusted).toEqual(['a', 'b']);
+    expect('ignored' in all).toBe(false);
+    expect(all.schemaVersion).toBe(2);
+  });
+  it('getTrusted/setTrusted round-trip', async () => {
+    await setTrusted(['x']);
+    expect(await getTrusted()).toEqual(['x']);
   });
 });
