@@ -14,3 +14,11 @@ body { margin: 0; width: 420px; font: 14px/1.5 system-ui, sans-serif; background
 .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 6px; }
 .note { color: var(--muted); }
 .error { padding: 16px; color: #f87171; }
+
+.support-section { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); }
+.btc-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.btc-address { font: 11px/1.4 ui-monospace, monospace; background: var(--panel);
+  border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; flex: 1;
+  word-break: break-all; user-select: all; }
+.btn-copy { font: inherit; font-size: 12px; padding: 5px 12px; border-radius: 6px;
+  border: 1px solid var(--line); background: var(--panel); color: var(--text); cursor: pointer; }

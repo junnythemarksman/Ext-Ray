@@ -9,7 +9,9 @@ in execution order. Sources are 2025–26 CWS primary docs.
       submission without it. [2SV policy](https://developer.chrome.com/docs/webstore/program-policies/two-step-verification)
 - [ ] Pay the one-time **$5 developer registration fee** (if not already registered).
 - [ ] Complete the **Trader / Non-Trader** declaration (EU DSA). Free, personal,
-      non-monetized → Non-Trader is the likely fit; owner decides.
+      non-monetized → Non-Trader is the likely fit; owner decides. Note: the options page
+      shows a voluntary BTC donation address — voluntary donations for a free product
+      generally don't make one a "trader," but factor it into this declaration (not legal advice).
       [Trader disclosure](https://developer.chrome.com/docs/webstore/program-policies/trader-disclosure)
 
 ## Privacy plumbing

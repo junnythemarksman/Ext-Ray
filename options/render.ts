@@ -5,6 +5,9 @@ import type { Settings, ExtSnapshot } from '../src/types';
 
 const CADENCE_PRESETS = [1, 5, 15, 30, 60];
 
+// Bech32 checksum verified before embedding (segwit v0 P2WPKH) — do not retype by hand.
+const BTC_ADDRESS = 'bc1qux0rkwceymkq6nzya8wzzamj0amus6l35pzeq2';
+
 function el(tag: string, className?: string, text?: string): HTMLElement {
   const node = document.createElement(tag);
   if (className) node.className = className;
@@ -77,4 +80,15 @@ export function renderOptions(
     for (const ext of extensions) section.append(ignoreRow(ext, ignoredSet.has(ext.id)));
   }
   root.append(section);
+
+  const support = el('section', 'support-section');
+  support.append(el('h2', 'section-title', 'Support Ext-Ray'));
+  support.append(el('p', 'note',
+    'Ext-Ray is free and runs entirely on your device. If it’s useful, a Bitcoin donation helps keep it maintained.'));
+  const btcRow = el('div', 'btc-row');
+  const copyBtn = el('button', 'btn-copy', 'Copy');
+  copyBtn.dataset.copy = BTC_ADDRESS;
+  btcRow.append(el('code', 'btc-address', BTC_ADDRESS), copyBtn);
+  support.append(btcRow);
+  root.append(support);
 }

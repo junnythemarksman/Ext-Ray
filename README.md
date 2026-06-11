@@ -225,3 +225,14 @@ a malicious-extension reputation database, and code/behavioral analysis.
 
 Vanilla TypeScript + Vite, minimal dependencies (a security tool shouldn't ship a large
 dependency tree). Build/run instructions land with the first implementation milestone.
+
+## Donations
+
+Ext-Ray is free, local-only, and has nothing to sell. If it's useful to you, a Bitcoin
+donation helps keep it maintained:
+
+```
+bc1qux0rkwceymkq6nzya8wzzamj0amus6l35pzeq2
+```
+
+(Also available under **Support Ext-Ray** at the bottom of the extension's options page.)

@@ -13,6 +13,21 @@ let settings: Settings;
 let ignored: string[];
 
 root.addEventListener('change', (e) => void onChange(e));
+root.addEventListener('click', (e) => void onCopy(e));
+
+// Copy-to-clipboard for the donation address. navigator.clipboard.writeText works in an
+// extension page on a user gesture — no clipboardWrite permission needed (4-perm invariant holds).
+async function onCopy(e: Event): Promise<void> {
+  const btn = (e.target as HTMLElement).closest('button[data-copy]') as HTMLButtonElement | null;
+  if (!btn) return;
+  try {
+    await navigator.clipboard.writeText(btn.dataset.copy ?? '');
+    btn.textContent = 'Copied ✓';
+    setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+  } catch {
+    /* clipboard unavailable — the address is selectable text, user can copy manually */
+  }
+}
 
 async function onChange(e: Event): Promise<void> {
   const target = e.target as HTMLInputElement & HTMLSelectElement;
