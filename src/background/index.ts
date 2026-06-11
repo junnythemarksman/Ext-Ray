@@ -68,7 +68,7 @@ async function runScan(): Promise<void> {
 
 async function applyAlarmAction(action: AlarmAction): Promise<void> {
   if (action.kind === 'clear') await chrome.alarms.clear(ALARM_NAME);
-  else if (action.kind === 'create') chrome.alarms.create(ALARM_NAME, { periodInMinutes: action.periodInMinutes });
+  else if (action.kind === 'create') await chrome.alarms.create(ALARM_NAME, { periodInMinutes: action.periodInMinutes });
 }
 
 // Bring the scan alarm in line with the current settings (create / clear / leave).

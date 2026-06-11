@@ -30,4 +30,8 @@ describe('reconcileAlarm', () => {
   it('clamps the period to Chrome\'s 0.5-minute minimum', () => {
     expect(reconcileAlarm(settings({ scanIntervalMinutes: 0.1 }), undefined)).toEqual({ kind: 'create', periodInMinutes: 0.5 });
   });
+
+  it('clamped create is idempotent — an existing 0.5-min alarm with a sub-minimum setting yields none', () => {
+    expect(reconcileAlarm(settings({ scanIntervalMinutes: 0.1 }), { periodInMinutes: 0.5 })).toEqual({ kind: 'none' });
+  });
 });
