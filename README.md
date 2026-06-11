@@ -9,10 +9,10 @@ Nothing leaves your browser.
 
 ![Ext-Ray popup — fleet grade ring, per-extension risk cards with Chrome's own warning text, one-click Disable/Remove](docs/assets/popup.png)
 
-> **Status:** Submission-ready (Phases 0–9.5 ✅) — scoring, snapshot-diff guardian, popup report
+> **Status:** Submission-ready (Phases 0–9.6 ✅) — scoring, snapshot-diff guardian, popup report
 > with ring-gauge grade + real extension icons, options page, first-run onboarding, a shared
 > OKLCH design system, MV3 build pipeline, a real-Chromium Playwright E2E suite
-> (93 unit + 16 e2e tests), store screenshots (`npm run shots`), and the `docs/store/` submission
+> (101 unit + 17 e2e tests), store screenshots (`npm run shots`), and the `docs/store/` submission
 > kit. Remaining steps are owner-external (see
 > [docs/store/submission-checklist.md](docs/store/submission-checklist.md)).
 > See [docs/ROADMAP.md](docs/ROADMAP.md) for live status and the
@@ -32,10 +32,13 @@ which of your extensions are risky and why, and warns you when one changes.
 ## How it works (in one breath)
 
 Open the popup → see an overall security grade plus a card for each extension (risk tier,
-plain-English reasons, one-click **Disable** / **Remove**). In the background, a guardian
-re-scans on a timer and on extension install/enable/disable/uninstall events, and notifies you when an extension is newly
-installed or **silently changes** after install (new permissions, a version bump after
-long stability, or a publisher change).
+plain-English reasons, one-click **Disable** / **Remove**). Recognise a legitimately-powerful
+extension (say, a real antivirus)? **Trust** it: it collapses into a separate section and drops out
+of the grade — but the guardian keeps watching it and **automatically re-alerts and un-trusts it the
+moment it materially changes**. In the background, that guardian re-scans on a timer and on extension
+install/enable/disable/uninstall events, and notifies you when an extension is newly installed or
+**silently changes** after install (new permissions, a version bump after long stability, or a
+publisher change).
 
 ## Architecture
 
@@ -142,6 +145,8 @@ sequenceDiagram
     User->>Popup: click Disable / Remove
     Popup->>Mgmt: setEnabled() / uninstall()
     Note over Popup,Mgmt: uninstall shows Chrome's native confirm dialog
+    User->>Popup: click Trust / Untrust
+    Popup->>Popup: setTrusted() → re-render (trusted excluded from grade)
 ```
 
 ### Background guardian (continuous monitoring)
@@ -184,6 +189,9 @@ flowchart TD
     Q -->|"version jump after long stability"| C["alert: suspicious update"]
     Q -->|"publisher / updateUrl changed"| D["alert: possible ownership change"]
     Q -->|no change| E["stay silent · update snapshot"]
+    A & B & C & D --> T{"is it trusted?"}
+    T -->|yes| R["re-alert AND revoke trust · reappears at true tier"]
+    T -->|no| N["alert as normal"]
 ```
 
 ## Security & trust model
