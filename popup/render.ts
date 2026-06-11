@@ -73,7 +73,7 @@ function el(tag: string, className?: string, text?: string): HTMLElement {
   return node;
 }
 
-function renderActions(enabled: boolean, canDisable: boolean): HTMLElement {
+function renderActions(enabled: boolean, canDisable: boolean, trustAction?: 'trust' | 'untrust'): HTMLElement {
   const wrap = el('div', 'actions');
   if (!canDisable) {
     wrap.append(el('span', 'managed', 'managed by your organization'));
@@ -84,6 +84,11 @@ function renderActions(enabled: boolean, canDisable: boolean): HTMLElement {
   const remove = el('button', 'btn btn-remove', 'Remove');
   remove.dataset.action = 'remove';
   wrap.append(toggle, remove);
+  if (trustAction) {
+    const t = el('button', 'btn btn-trust', trustAction === 'trust' ? 'Trust' : 'Untrust');
+    t.dataset.action = trustAction;
+    wrap.append(t);
+  }
   return wrap;
 }
 
@@ -109,7 +114,7 @@ function renderCard(card: ReportCard): HTMLElement {
   warning.dataset.id = card.id; // filled by the controller when the browser warning arrives
   c.append(warning);
 
-  c.append(renderActions(card.enabled, card.canDisable));
+  c.append(renderActions(card.enabled, card.canDisable, 'trust'));
   return c;
 }
 
@@ -139,7 +144,7 @@ export function renderReport(view: ReportView, root: HTMLElement): void {
     el('div', 'summary',
       view.counts.total === 0
         ? 'No other extensions installed.'
-        : `${view.counts.risky} need a look · ${view.counts.low} low-risk`),
+        : `${view.counts.risky} need a look · ${view.counts.low} low-risk${view.counts.trusted ? ` · ${view.counts.trusted} trusted (excluded)` : ''}`),
     el('div', 'grade-caption', 'Overall security grade'),
   );
   header.append(meta);
@@ -151,6 +156,21 @@ export function renderReport(view: ReportView, root: HTMLElement): void {
     const section = el('section', 'low-section');
     section.append(el('h2', 'low-title', 'low-risk'));
     for (const row of view.low) section.append(renderRow(row));
+    root.append(section);
+  }
+
+  if (view.trusted.length) {
+    const section = el('section', 'trusted-section');
+    section.append(el('h2', 'trusted-title', 'trusted'));
+    for (const t of view.trusted) {
+      const r = el('div', `row tier-${t.tier} is-trusted`);
+      r.dataset.ext = t.id;
+      r.dataset.enabled = String(t.enabled);
+      r.append(iconImg(t.iconUrl, 24), el('span', 'dot'), el('span', 'name', t.name),
+        el('span', 'tier-label', TIER_LABEL[t.tier]));
+      r.append(renderActions(t.enabled, t.canDisable, 'untrust'));
+      section.append(r);
+    }
     root.append(section);
   }
 

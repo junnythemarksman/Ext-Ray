@@ -99,3 +99,11 @@ body { margin: 0; width: 360px; font: 13px/1.45 system-ui, sans-serif;
 @media (forced-colors: active) {
   .card, .tier-label, .btn { border: 1px solid ButtonText; box-shadow: none; }
 }
+
+.trusted-section { margin-top: 10px; }
+.trusted-title { font-size: 10px; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--er-muted); margin: 8px 0 4px; }
+.row.is-trusted { opacity: .8; }
+.row .tier-label { margin-left: auto; }
+.btn-trust { background: transparent; }
+@media (forced-colors: active) { .btn-trust { border: 1px solid ButtonText; } }

@@ -115,3 +115,19 @@ test('cards and rows render extension icons (fallback for iconless fixtures)', a
   for (const src of srcs) expect(src).toContain('ext-fallback.svg');
   await page.close();
 });
+
+test('Trust moves a card into the Trusted section and excludes it from the grade', async ({ context, extensionId }) => {
+  const page = await context.newPage();
+  await page.goto(popupUrl(extensionId));
+  const critical = page.locator('article.card.tier-critical');
+  const id = await critical.getAttribute('data-ext');
+  await critical.locator('button[data-action="trust"]').click();
+  // it leaves the risky cards and appears in the trusted section
+  await expect(page.locator(`article.card[data-ext="${id}"]`)).toHaveCount(0);
+  await expect(page.locator(`.trusted-section [data-ext="${id}"]`)).toHaveCount(1);
+  await expect(page.locator('.summary')).toContainText('trusted (excluded)');
+  await expect
+    .poll(() => swEval<string[]>(context, async () => (await chrome.storage.local.get('trusted')).trusted ?? []))
+    .toContain(id);
+  await page.close();
+});

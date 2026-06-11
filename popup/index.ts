@@ -4,6 +4,7 @@
 // (chrome.* + DOM glue) — exercised in Phase 8.
 
 import { getExtensions, getPermissionWarningsById, setEnabled, uninstall } from '../src/management/management';
+import { getTrusted, setTrusted } from '../src/storage/storage';
 import { buildReport } from '../src/report/report';
 import { renderReport, renderError } from './render';
 
@@ -18,6 +19,16 @@ async function onClick(e: MouseEvent): Promise<void> {
   const item = btn.closest('[data-ext]') as HTMLElement | null;
   if (!item) return;
   const id = item.dataset.ext ?? '';
+
+  if (btn.dataset.action === 'trust' || btn.dataset.action === 'untrust') {
+    const trusted = await getTrusted();
+    const next = btn.dataset.action === 'trust'
+      ? [...new Set([...trusted, id])]
+      : trusted.filter((t) => t !== id);
+    await setTrusted(next);
+    await load(); // full re-render reflects the new partition + grade
+    return;
+  }
 
   // Disable is reversible/low-risk and the optimistic DOM update runs AFTER the await,
   // so a (near-impossible) setEnabled failure simply skips the update — no try/catch needed,
@@ -52,12 +63,12 @@ async function fillWarnings(ids: string[]): Promise<void> {
 }
 
 async function load(): Promise<void> {
-  const snapshots = await getExtensions().catch(() => null);
+  const [snapshots, trusted] = await Promise.all([getExtensions().catch(() => null), getTrusted()]);
   if (snapshots === null) {
     renderError(root, 'Couldn’t read your extensions.');
     return;
   }
-  const view = buildReport(snapshots);
+  const view = buildReport(snapshots, trusted);
   renderReport(view, root);
   void fillWarnings(view.risky.map((card) => card.id));
 }
