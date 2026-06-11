@@ -7,11 +7,17 @@ extension you have installed, grades its security risk in plain English, and qui
 watches for anything that changes _after_ you install it. No backend. No accounts.
 Nothing leaves your browser.
 
-> **Status:** Feature-complete and browser-verified (Phases 0–8 ✅) — scoring, snapshot-diff
-> guardian, popup report, options page, MV3 build pipeline, and a real-Chromium Playwright E2E
-> suite (86 unit + 13 e2e tests). Phase 9 (store-listing readiness) is in progress.
+> **Status:** Submission-ready (Phases 0–9 ✅) — scoring, snapshot-diff guardian, popup report,
+> options page, first-run onboarding, MV3 build pipeline, a real-Chromium Playwright E2E suite
+> (86 unit + 14 e2e tests), store screenshots (`npm run shots`), and the `docs/store/` submission
+> kit. Remaining steps are owner-external (see
+> [docs/store/submission-checklist.md](docs/store/submission-checklist.md)).
 > See [docs/ROADMAP.md](docs/ROADMAP.md) for live status and the
 > [design spec](docs/superpowers/specs/2026-06-05-ext-ray-design.md) for the architecture.
+>
+> On install, Ext-Ray opens a one-time onboarding page explaining its read-only, 100 %-on-device
+> model and why it needs the `management` permission. Privacy policy:
+> <https://junnythemarksman.github.io/ext-ray-privacy/>.
 
 ## Why it exists
 

@@ -19,36 +19,37 @@ flow → §9 testing → §10 distribution). One phase, one coherent slice of th
 | **6 — Popup report UI** | On-demand audit: A–F grade header, full cards for risky extensions (reasons + C1 browser warning + version + Disable/Remove), compact rows for low-risk, honest-limits footer. Pure `report/buildReport` + dumb `render` + thin `management` actions (`getPermissionWarningsById`/`setEnabled`/`uninstall`). Vanilla TS+CSS, `popup/` now type-checked. **Deferred to a follow-up:** `chrome.notifications.onClicked` → `openPopup()` wiring (touches the SW; `openPopup` has reliability caveats). | ✅ |
 | **7 — Options / settings UI** | Settings page: monitoring toggle, preset cadence dropdown (1/5/15/30/60), notify toggle, per-extension ignore toggles — auto-saved to `storage/`. Pure `reconcileAlarm` (≥0.5 clamp) + SW `storage.onChanged` reconcile makes changes take effect **live** (monitoring-off clears the alarm; cadence change recreates it). `options/` now type-checked. | ✅ |
 | **8 — Integration & in-browser E2E** | Playwright: load unpacked in Chrome/Edge, exercise every control, watch `console.error`/`pageerror`, screenshot on failure. **Deferred guardian/UI robustness cases land here:** (a) SW terminal unhandled-rejection if the final queued scan fails; (b) notify-before-persist kill window (could re-notify once); (c) `notifications.create` rejecting when the icon asset is absent; (d) the deferred `notifications.onClicked` → `openPopup()` wiring; (e) confirm the managed-state (no buttons) + options 420px width read well in-browser. | ✅ |
-| **9 — Store-listing readiness** | Privacy policy + Limited Use disclosure, first-run screen pre-empting the `management` warning, USPTO trademark check (spec §10) | ◀ **next** |
-| **10 — On-device AI explanations** *(progressive enhancement, built last)* | Chrome built-in AI (Prompt + Summarizer, Gemini Nano) for local plain-English risk explanations, layered **over C1** with graceful degradation when unavailable; honest disclosure of the one-time model download + hardware gates (**C3**) | ⬜ |
+| **9 — Store-listing readiness** | Privacy policy + Limited Use disclosure (finalized in the public `ext-ray-privacy` repo, GitHub Pages), first-run **onboarding page** opened once on install (pre-empts the `management` warning; no new permission), `npm run shots` (behavior-matching 1280×800 store screenshots), `docs/store/` (listing copy + dashboard answers, trademark clear-but-provisional verdict, owner-only submission checklist) (spec §10) | ✅ |
+| **10 — On-device AI explanations** *(progressive enhancement, built last)* | Chrome built-in AI (Prompt + Summarizer, Gemini Nano) for local plain-English risk explanations, layered **over C1** with graceful degradation when unavailable; honest disclosure of the one-time model download + hardware gates (**C3**); feature-gate Chrome 148 `responseConstraint` structured output (delta pass 2026-06-11) | ◀ **next** |
 
 ## Where we are
 
-**Phase 8 complete** — the whole extension now runs in a real Chromium under `@playwright/test`
-(80 unit tests + **12 in-browser E2E**, `tsc`-clean, `verify:build` OK). A `launchPersistentContext`
-harness (`channel: 'chromium'`, new headless) loads `dist/` + three real fixture extensions
-(critical/high/low tiers → deterministic fleet grade **F**) and drives popup, options, and the
-guardian through the live `chrome.*` edges, with an auto error-gate failing on any
-`console.error`/`pageerror`. The deferred robustness cases were discharged with the right tool per
-case: **(d)** `notifications.onClicked → openPopup()` (with a tab fallback) built; **(a)** failing
-scans can no longer become terminal unhandled rejections; **(c)** notification `create` is
-crash-guarded; **(b)** the notify-before-persist order is kept and documented as deliberate
-*at-least-once* delivery (a rare duplicate beats a silently dropped security alert); **(e)** the
-420px options layout is E2E-checked, while the managed-state render (needs `mayDisable:false`, i.e.
-enterprise force-install) is covered by `report.test.ts` + a documented limitation rather than an
-un-triggerable in-browser test. **Finding:** `chrome.notifications.getAll()` works in new headless,
-so the planned headed fallback for the guardian notification check was not needed. **Phase 9
-(store-listing readiness) is next.** The MVP (audit + guardian + UIs) is code-complete and
-browser-verified; Phase 9 is release prep, Phase 10 (on-device AI) the optional enhancement.
+**Phase 9 complete — Ext-Ray is submission-ready** (86 unit + **14 in-browser E2E**, `tsc`-clean,
+`verify:build` OK). Everything the repo can deliver for a Chrome Web Store listing now exists:
+a first-run **onboarding page** opened once per install (`onInstalled` reason guard; `tabs.create`
+needs no permission, so the check-dist 4-permission trust invariant still holds) that pre-empts the
+"Manage your apps, extensions, and themes" warning with read-only / 100 %-on-device / why-management
+reassurances + the privacy-policy link; **`npm run shots`** generating behavior-matching 1280×800
+store screenshots from the real UI over a varied fixture fleet; and **`docs/store/`** — paste-ready
+listing copy + Privacy-Practices dashboard answers, the trademark **clear-but-provisional** verdict,
+and the owner-only submission checklist (2SV, trader status, create `extray.support@gmail.com`,
+enable GitHub Pages on `ext-ray-privacy`, test-the-exact-ZIP, manual-review/backlog expectations,
+one-appeal rule). The privacy policy itself is finalized in the public **`ext-ray-privacy`** repo.
+**What remains for a live listing is owner-external only** (accounts, hosting toggle, upload).
 
-Honest limits carried into the E2E suite (spec §7): the native uninstall confirm dialog can't be
-driven by Playwright, so **Remove** is verified by a narrow page-side spy on
-`chrome.management.uninstall` (the one sanctioned mock); a real notification click isn't automatable,
-so (d) is verified by inspection + SW stability.
+**Phase 10 (on-device AI explanations) is next**, with the queued post-Phase-9 **signal pack**
+(five evidence-backed declared-metadata signals + test backfill — see the audit/delta sections)
+available as a small phase before or after it.
+
+Honest limits carried through the E2E suite (Phase 8 spec §7): the native uninstall dialog can't be
+driven by Playwright (Remove is verified by a narrow page-side spy — the one sanctioned mock); a
+real notification click isn't automatable; screenshots are generated against an unpacked fixture
+fleet, so they carry the documented `installType: development` tier bump the owner reviews before
+upload.
 
 The architectural arc: Phases 2–3 were pure/near-pure and unit-tested; Phase 4 added the `chrome.*`
 guardian glue; Phase 5 made it loadable; Phases 6–7 built the user-facing UI; Phase 8 exercised the
-whole thing in a real browser.
+whole thing in a real browser; Phase 9 packaged it for the store.
 
 ## Deferred — evidence-gated (design spec §13.2)
 
