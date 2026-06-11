@@ -5,7 +5,7 @@
 import { getExtensions } from '../management/management';
 import { evaluateScan, isUntrustworthyScan } from '../guardian/guardian';
 import { reconcileAlarm } from '../guardian/alarm';
-import { getSnapshot, setSnapshot, getTimestamps, setTimestamps, getSettings, getIgnored, migrate } from '../storage/storage';
+import { getSnapshot, setSnapshot, getTimestamps, setTimestamps, getSettings, getTrusted, setTrusted, migrate } from '../storage/storage';
 import { trace } from '../debug';
 import type { AlarmAction } from '../types';
 
@@ -23,8 +23,8 @@ function scheduleScan(): Promise<void> {
 async function runScan(): Promise<void> {
   const start = Date.now();
   try {
-    const [curr, prev, timestamps, settings, ignored] = await Promise.all([
-      getExtensions(), getSnapshot(), getTimestamps(), getSettings(), getIgnored(),
+    const [curr, prev, timestamps, settings, trusted] = await Promise.all([
+      getExtensions(), getSnapshot(), getTimestamps(), getSettings(), getTrusted(),
     ]);
     if (!settings.monitoringEnabled) return;
 
@@ -35,7 +35,7 @@ async function runScan(): Promise<void> {
       return;
     }
 
-    const result = evaluateScan({ prev, curr, timestamps, settings, ignored, now: Date.now() });
+    const result = evaluateScan({ prev, curr, timestamps, settings, trusted, now: Date.now() });
 
     // (b) Notify BEFORE persist = at-least-once delivery. If the SW is killed in the sub-second
     // window between create() and the snapshot write, the next scan re-diffs against the old
@@ -52,7 +52,13 @@ async function runScan(): Promise<void> {
         })
         .catch((e) => { if (tSec.enabled) tSec('notify failed', { error: String(e) }); });
     }
-    await Promise.all([setSnapshot(curr), setTimestamps(result.timestamps)]);
+    const writes: Array<Promise<void>> = [setSnapshot(curr), setTimestamps(result.timestamps)];
+    if (result.revokeTrust.length) {
+      const revoke = new Set(result.revokeTrust);
+      writes.push(setTrusted(trusted.filter((id) => !revoke.has(id))));
+      if (tSec.enabled) tSec('trust revoked (material change)', { ids: result.revokeTrust.length });
+    }
+    await Promise.all(writes);
     if (tPerf.enabled) tPerf('scan complete', { ms: Date.now() - start, count: curr.length });
   } catch (e) {
     // (a) A failing scan must never become a terminal unhandled rejection in the inFlight chain.
