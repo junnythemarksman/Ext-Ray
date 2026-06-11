@@ -7,9 +7,10 @@ extension you have installed, grades its security risk in plain English, and qui
 watches for anything that changes _after_ you install it. No backend. No accounts.
 Nothing leaves your browser.
 
-> **Status:** Submission-ready (Phases 0–9 ✅) — scoring, snapshot-diff guardian, popup report,
-> options page, first-run onboarding, MV3 build pipeline, a real-Chromium Playwright E2E suite
-> (86 unit + 14 e2e tests), store screenshots (`npm run shots`), and the `docs/store/` submission
+> **Status:** Submission-ready (Phases 0–9.5 ✅) — scoring, snapshot-diff guardian, popup report
+> with ring-gauge grade + real extension icons, options page, first-run onboarding, a shared
+> OKLCH design system, MV3 build pipeline, a real-Chromium Playwright E2E suite
+> (93 unit + 16 e2e tests), store screenshots (`npm run shots`), and the `docs/store/` submission
 > kit. Remaining steps are owner-external (see
 > [docs/store/submission-checklist.md](docs/store/submission-checklist.md)).
 > See [docs/ROADMAP.md](docs/ROADMAP.md) for live status and the

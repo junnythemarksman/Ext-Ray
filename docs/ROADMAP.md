@@ -20,12 +20,14 @@ flow → §9 testing → §10 distribution). One phase, one coherent slice of th
 | **7 — Options / settings UI** | Settings page: monitoring toggle, preset cadence dropdown (1/5/15/30/60), notify toggle, per-extension ignore toggles — auto-saved to `storage/`. Pure `reconcileAlarm` (≥0.5 clamp) + SW `storage.onChanged` reconcile makes changes take effect **live** (monitoring-off clears the alarm; cadence change recreates it). `options/` now type-checked. | ✅ |
 | **8 — Integration & in-browser E2E** | Playwright: load unpacked in Chrome/Edge, exercise every control, watch `console.error`/`pageerror`, screenshot on failure. **Deferred guardian/UI robustness cases land here:** (a) SW terminal unhandled-rejection if the final queued scan fails; (b) notify-before-persist kill window (could re-notify once); (c) `notifications.create` rejecting when the icon asset is absent; (d) the deferred `notifications.onClicked` → `openPopup()` wiring; (e) confirm the managed-state (no buttons) + options 420px width read well in-browser. | ✅ |
 | **9 — Store-listing readiness** | Privacy policy + Limited Use disclosure (finalized in the public `ext-ray-privacy` repo, GitHub Pages), first-run **onboarding page** opened once on install (pre-empts the `management` warning; no new permission), `npm run shots` (behavior-matching 1280×800 store screenshots), `docs/store/` (listing copy + dashboard answers, trademark clear-but-provisional verdict, owner-only submission checklist) (spec §10) | ✅ |
+| **9.5 — UI refresh** | Brand restyle of all three surfaces: shared OKLCH token system (`shared/tokens.css`), SVG ring gauge (`role=meter`, grade-mapped arc, word labels A Excellent → F At Risk), risk pills, **real extension icons** via `ExtensionInfo.icons` (research-verified, zero new permissions, pure `pickBestIcon` + fallback silhouette), WCAG 2.2 AA contrast/focus/forced-colors/reduced-motion gates. E2E selector contract preserved; product now matches the store screenshots + promo art. | ✅ |
 | **10 — On-device AI explanations** *(progressive enhancement, built last)* | Chrome built-in AI (Prompt + Summarizer, Gemini Nano) for local plain-English risk explanations, layered **over C1** with graceful degradation when unavailable; honest disclosure of the one-time model download + hardware gates (**C3**); feature-gate Chrome 148 `responseConstraint` structured output (delta pass 2026-06-11) | ◀ **next** |
 
 ## Where we are
 
-**Phase 9 complete — Ext-Ray is submission-ready** (86 unit + **14 in-browser E2E**, `tsc`-clean,
-`verify:build` OK). Everything the repo can deliver for a Chrome Web Store listing now exists:
+**Phases 9 + 9.5 complete — Ext-Ray is submission-ready with the brand UI** (93 unit +
+**16 in-browser E2E**, `tsc`-clean, `verify:build` OK; the 9.5 restyle landed after the
+store-readiness work below). Everything the repo can deliver for a Chrome Web Store listing now exists:
 a first-run **onboarding page** opened once per install (`onInstalled` reason guard; `tabs.create`
 needs no permission, so the check-dist 4-permission trust invariant still holds) that pre-empts the
 "Manage your apps, extensions, and themes" warning with read-only / 100 %-on-device / why-management
