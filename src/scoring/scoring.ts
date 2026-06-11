@@ -92,7 +92,10 @@ function reasonsFor(
       reasons.push(`Can access ${label}`);
     } else if (weight >= 0.7) {
       reasons.push(`Requests the powerful "${label}" permission`);
-    } else if (weight >= 0.4) {
+    } else if (weight >= 0.3) {
+      // Floor aligned with the medium tier cutoff (TIER_THRESHOLDS, 0.3) so a
+      // medium verdict always has an explaining reason — never the "Minimal
+      // permissions" fallback. Covers clipboardWrite and unknown permissions (0.3).
       reasons.push(`Requests "${label}"`);
     }
   }

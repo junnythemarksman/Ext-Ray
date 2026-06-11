@@ -94,6 +94,22 @@ describe('scoreExtension', () => {
     ).length;
     expect(count).toBe(1);
   });
+
+  // F-05: a medium-tier verdict must never carry the "Minimal permissions" low-risk reason.
+  // The reason floor must cover the whole medium tier (score >= 0.3), not just >= 0.4.
+  it('explains a medium-tier clipboardWrite extension instead of calling it minimal', () => {
+    const v = scoreExtension(ext({ permissions: ['clipboardWrite'] }));
+    expect(v.tier).toBe('medium');
+    expect(v.reasons).toContain('Requests "clipboardWrite"');
+    expect(v.reasons).not.toContain('Minimal permissions — low risk');
+  });
+
+  it('explains a medium-tier unknown permission by naming it (no low-risk fallback)', () => {
+    const v = scoreExtension(ext({ permissions: ['unknownPermissionXYZ'] }));
+    expect(v.tier).toBe('medium');
+    expect(v.reasons).toContain('Requests "unknownPermissionXYZ"');
+    expect(v.reasons).not.toContain('Minimal permissions — low risk');
+  });
 });
 
 describe('gradeFleet', () => {
