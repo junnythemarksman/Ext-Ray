@@ -95,14 +95,15 @@ export interface ScanInput {
   curr: ExtSnapshot[];
   timestamps: Record<string, ExtTimestamps>;
   settings: Settings;
-  ignored: string[];
+  trusted: string[];
   now: number;
 }
 
 export interface ScanResult {
   timestamps: Record<string, ExtTimestamps>;        // new map to persist
-  classified: ClassifiedChange[];                    // all (non-ignored) changes + severity
+  classified: ClassifiedChange[];                    // all non-suppressed changes + severity
   notification: { title: string; message: string } | null; // batched; null = stay silent
+  revokeTrust: string[];   // trusted ids whose trust a material change voided
 }
 
 // ── Phase 6: popup report view model ──────────────────────────────────────────
@@ -132,7 +133,8 @@ export interface ReportView {
   grade: FleetGrade;
   risky: ReportCard[]; // worst-first
   low: ReportRow[];    // worst-first
-  counts: { total: number; risky: number; low: number };
+  trusted: ReportCard[]; // trusted — excluded from the grade
+  counts: { total: number; risky: number; low: number; trusted: number };
 }
 
 // ── Phase 7: options / alarm reconciliation ───────────────────────────────────
