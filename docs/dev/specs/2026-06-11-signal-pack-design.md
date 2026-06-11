@@ -118,7 +118,8 @@ export function fleetSignals(snapshots: ExtSnapshot[]): Map<string, string[]>
 - **Store hosts:** `const STORE_HOSTS = new Set(['clients2.google.com', 'edge.microsoft.com'])`.
 - **Host extraction:** `new URL(updateUrl).hostname` in try/catch; a malformed URL (near-impossible
   from Chrome) safe-fails as non-store — over-noting, never under-noting (same philosophy as
-  `hostWeight`).
+  `hostWeight`). A malformed URL still gets the non-store note but NEVER participates in
+  clustering — an empty hostname is not a server identity (review amendment).
 - Signal strings (exact copy):
   1. disabled-state: `Chrome disabled this extension: an update requested more permissions` —
      when `!enabled && disabledReason === 'permissions_increase'`.
