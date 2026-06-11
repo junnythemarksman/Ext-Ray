@@ -1,10 +1,10 @@
 # Phase 5 — MV3 Build Pipeline Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> Implement task-by-task; steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** `npm run build` produces a loadable MV3 `dist/` (bundled service worker, stub popup/options, manifest, placeholder icons) so Ext-Ray installs as an unpacked extension and the guardian runs live.
 
-**Architecture:** Hand-rolled Vite, **zero new dependencies**, two build passes into one `dist/`: a multi-input *pages* pass (stub popup/options; `publicDir` copies manifest + icons) and a separate single-input *service-worker* pass with `inlineDynamicImports` (one self-contained file, dodging the MV3 dynamic-import/preload footgun). Spec: `docs/superpowers/specs/2026-06-06-phase5-build-design.md`.
+**Architecture:** Hand-rolled Vite, **zero new dependencies**, two build passes into one `dist/`: a multi-input *pages* pass (stub popup/options; `publicDir` copies manifest + icons) and a separate single-input *service-worker* pass with `inlineDynamicImports` (one self-contained file, dodging the MV3 dynamic-import/preload footgun). Spec: `docs/dev/specs/2026-06-06-phase5-build-design.md`.
 
 **Tech Stack:** Vite 6 (already installed), Node (zlib for the icon generator), TypeScript. No build plugin.
 
@@ -114,9 +114,7 @@ Expected: `true`
 
 ```bash
 git add scripts/gen-icons.mjs public/icons/
-git commit -m "build: add placeholder extension icons + generator
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "build: add placeholder extension icons + generator"
 ```
 
 ---
@@ -170,9 +168,7 @@ Expected: `true`
 
 ```bash
 git add public/manifest.json
-git commit -m "build: move manifest to public/ and declare icons
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "build: move manifest to public/ and declare icons"
 ```
 
 ---
@@ -246,9 +242,7 @@ Expected: all four paths listed, no error.
 
 ```bash
 git add popup/ options/
-git commit -m "build: add stub popup + options pages (real UIs land in Phases 6/7)
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "build: add stub popup + options pages (real UIs land in Phases 6/7)"
 ```
 
 ---
@@ -283,9 +277,7 @@ Expected: tsc OK; `Tests  64 passed (64)`.
 
 ```bash
 git add src/background/index.ts
-git commit -m "fix: use chrome.runtime.getURL for the guardian notification icon
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "fix: use chrome.runtime.getURL for the guardian notification icon"
 ```
 
 ---
@@ -373,9 +365,7 @@ Expected: `Tests  64 passed (64)` (the config merge didn't disturb the vitest bl
 
 ```bash
 git add vite.config.ts package.json
-git commit -m "build: two-pass Vite config (pages + self-contained SW) and scripts
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "build: two-pass Vite config (pages + self-contained SW) and scripts"
 ```
 
 ---
@@ -445,9 +435,7 @@ Expected: prints `✗ manifest references missing file: background/index.js` (an
 
 ```bash
 git add scripts/check-dist.mjs
-git commit -m "build: add check-dist.mjs to assert the loadable MV3 contract
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "build: add check-dist.mjs to assert the loadable MV3 contract"
 ```
 
 ---

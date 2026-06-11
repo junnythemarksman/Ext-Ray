@@ -2,7 +2,6 @@
 
 - **Date:** 2026-06-07
 - **Status:** Approved design, pre-implementation
-- **Author:** Genaro Peque, Jr
 - **Elaborates:** main [design spec](2026-06-05-ext-ray-design.md) §5.5; [roadmap](../../ROADMAP.md) Phase 6 (C1 warnings, notification-click wiring deferred, tsconfig include)
 
 ## 1. Summary

@@ -2,9 +2,7 @@
 
 - **Date:** 2026-06-11
 - **Status:** Approved design, pre-implementation
-- **Author:** Genaro Peque, Jr
-- **Elaborates:** owner brand art (logo + promo tiles, 2026-06-11); research workflow `wf_851386fa`
-  (5 scouts + synthesis, primary-sourced 2024–26); main design spec §5.5–§5.6.
+- **Elaborates:** owner brand art (logo + promo tiles, 2026-06-11); a primary-sourced research pass (2024–26); main design spec §5.5–§5.6.
 
 ## 1. Summary
 

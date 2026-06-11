@@ -2,7 +2,6 @@
 
 - **Date:** 2026-06-08
 - **Status:** Approved design, pre-implementation
-- **Author:** Genaro Peque, Jr
 - **Elaborates:** main [design spec](2026-06-05-ext-ray-design.md) §5.6; [roadmap](../../ROADMAP.md) Phase 7 (clamp `scanIntervalMinutes ≥ 0.5`, widen tsconfig include for `options/`)
 
 ## 1. Summary

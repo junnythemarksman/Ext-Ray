@@ -1,7 +1,7 @@
 # Ext-Ray — Roadmap
 
 Phased plan for building Ext-Ray, grounded in the
-[design spec](superpowers/specs/2026-06-05-ext-ray-design.md) (§5 components → §6 data
+[design spec](dev/specs/2026-06-05-ext-ray-design.md) (§5 components → §6 data
 flow → §9 testing → §10 distribution). One phase, one coherent slice of the product.
 
 **Legend:** ✅ complete · ◀ current · ⬜ to do
@@ -139,7 +139,7 @@ viability spike) → N3 (folds into Phase 10) → N4 (copy refinement). N1/N3 wa
 
 ## Phases 1–8 audit (2026-06-08, multi-agent review + research)
 
-A 62-agent workflow reviewed every Phase 1–8 subsystem and ran a fresh 2025–26 web/research pass,
+A comprehensive multi-pass review covered every Phase 1–8 subsystem and ran a fresh 2025–26 web/research pass,
 then adversarially verified 45 of 84 candidates against the hard constraints and this roadmap
 (14 adopt / 15 consider / 16 reject). **Verdict: Phases 1–8 are sound; the constraints hold; the
 2025–26 campaigns (GlassWorm, Phantom Shuttle proxy-MitM, Unit 42 AI/debugger abuse) *validate* the
@@ -192,7 +192,7 @@ redundant. The endorsed weight values remain frozen.
 
 ### Delta pass (2026-06-11) — what changed since the audit
 
-A four-scout follow-up (repo delta + threat intel + platform + papers, Dec 2025–Jun 2026 window)
+A follow-up review (repo delta + threat intel + platform + papers, Dec 2025–Jun 2026 window)
 confirmed F1–F5 shipped intact and added the two `updateUrl` signals above. Other notes:
 - **Calibration anchor:** ~16 % of CWS extensions (by install share) perform third-party tracking,
   and broad declared host patterns are predictive *without* runtime analysis

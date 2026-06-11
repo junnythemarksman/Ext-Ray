@@ -14,7 +14,7 @@ Nothing leaves your browser.
 > kit. Remaining steps are owner-external (see
 > [docs/store/submission-checklist.md](docs/store/submission-checklist.md)).
 > See [docs/ROADMAP.md](docs/ROADMAP.md) for live status and the
-> [design spec](docs/superpowers/specs/2026-06-05-ext-ray-design.md) for the architecture.
+> [design spec](docs/dev/specs/2026-06-05-ext-ray-design.md) for the architecture.
 >
 > On install, Ext-Ray opens a one-time onboarding page explaining its read-only, 100 %-on-device
 > model and why it needs the `management` permission. Privacy policy:

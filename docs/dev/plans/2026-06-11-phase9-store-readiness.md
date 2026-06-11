@@ -1,6 +1,6 @@
 # Phase 9 — Store-Listing Readiness Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> Implement task-by-task; steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make Ext-Ray Chrome-Web-Store submission-ready: a first-run onboarding page (code), a store-screenshot generator, and the `docs/store/` submission documents — leaving only owner-external steps in a checklist.
 
@@ -8,9 +8,8 @@
 
 **Tech Stack:** Vanilla TS/HTML/CSS, the existing two-pass Vite build, `@playwright/test` (already installed).
 
-**Spec:** [docs/superpowers/specs/2026-06-11-phase9-store-readiness-design.md](../specs/2026-06-11-phase9-store-readiness-design.md)
+**Spec:** [docs/dev/specs/2026-06-11-phase9-store-readiness-design.md](../specs/2026-06-11-phase9-store-readiness-design.md)
 
-**Conventions for every commit:** end the message with `Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>` (never AI attribution). Work on branch `phase-9-store-readiness`.
 
 ---
 
@@ -164,9 +163,7 @@ Expected: tsc clean; check-dist prints `✓ exists: onboarding/index.html` and `
 
 ```bash
 git add onboarding vite.config.ts tsconfig.json scripts/check-dist.mjs
-git commit -m "feat(onboarding): first-run page (read-only / on-device / why management)
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "feat(onboarding): first-run page (read-only / on-device / why management)"
 ```
 
 ---
@@ -240,9 +237,7 @@ existing spec; if one fails, READ the failure — do not edit other specs to for
 
 ```bash
 git add src/background/index.ts e2e/onboarding.spec.ts
-git commit -m "feat(guardian): open onboarding once on install + e2e spec
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "feat(guardian): open onboarding once on install + e2e spec"
 ```
 
 ---
@@ -340,9 +335,7 @@ Expected: prints the three written files; each PNG is 1280×800 (verify: `node -
 
 ```bash
 git add scripts/shots.mjs package.json .gitignore
-git commit -m "feat(store): npm run shots generates 1280x800 store screenshots from the real UI
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "feat(store): npm run shots generates 1280x800 store screenshots from the real UI"
 ```
 
 ---
@@ -456,9 +449,7 @@ distribution or accepting payment. Re-run the CWS name search immediately before
 
 ```bash
 git add docs/store/listing.md docs/store/trademark.md
-git commit -m "docs(store): listing copy + dashboard answers + trademark verdict
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "docs(store): listing copy + dashboard answers + trademark verdict"
 ```
 
 ---
@@ -520,9 +511,7 @@ in execution order. Sources are 2025–26 CWS primary docs.
 
 ```bash
 git add docs/store/submission-checklist.md
-git commit -m "docs(store): owner-only submission checklist (2025-26 CWS rules)
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "docs(store): owner-only submission checklist (2025-26 CWS rules)"
 ```
 
 ---
@@ -552,12 +541,10 @@ privacy policy (https://junnythemarksman.github.io/ext-ray-privacy/).
 
 ```bash
 git add docs/ROADMAP.md README.md
-git commit -m "docs: mark Phase 9 complete (store readiness), Phase 10 next
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "docs: mark Phase 9 complete (store readiness), Phase 10 next"
 ```
 
-- [ ] **Step 5: Finish the branch** — superpowers:finishing-a-development-branch (final review,
+- [ ] **Step 5: Finish the branch** — the finish-branch checklist (final review, fast-forward merge) (final review,
 fast-forward merge `phase-9-store-readiness` → `main`).
 
 ---

@@ -2,7 +2,6 @@
 
 - **Date:** 2026-06-06
 - **Status:** Approved design, pre-implementation
-- **Author:** Genaro Peque, Jr
 - **Elaborates:** main [design spec](2026-06-05-ext-ray-design.md) §2 (Deployment), §10; [roadmap](../../ROADMAP.md) Phase 5 (incl. the Phase 4 re-verification notes: ship `icon-128`, use `chrome.runtime.getURL` for the notification iconUrl)
 
 ## 1. Summary
@@ -23,7 +22,7 @@ supply-chain constraint and keeps the build chain small and auditable.
 2. **Stub popup + options so the extension loads end-to-end.** Phase 5 ships minimal placeholder
    pages so the full manifest is valid and installable; real UIs replace them in Phases 6/7.
 3. **Placeholder icons now, branding in Phase 9.** A simple geometric glyph set (16/32/48/128),
-   clearly marked as placeholder. Not AI-generated art.
+   clearly marked as placeholder.
 4. **No HMR.** `vite build` + `vite build --watch` for the dev loop. Reload-the-extension is
    sufficient for these simple surfaces.
 

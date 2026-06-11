@@ -1,10 +1,10 @@
 # Phase 7 — Options / Settings UI Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> Implement task-by-task; steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** A settings page to configure the guardian — toggle monitoring, choose re-scan cadence, toggle notifications, and pick which installed extensions to ignore — with changes taking effect live via a service-worker alarm reconcile.
 
-**Architecture:** A pure `reconcileAlarm(settings, existing) → AlarmAction` (the only real logic, TDD'd) drives the service worker's alarm; the SW reconciles on startup and on `chrome.storage.onChanged`. A dumb `options/render.ts` maps state→DOM and an `options/index.ts` controller auto-saves each change to the existing `storage/` layer. Vanilla TS+CSS, no framework. Spec: `docs/superpowers/specs/2026-06-08-phase7-options-design.md`.
+**Architecture:** A pure `reconcileAlarm(settings, existing) → AlarmAction` (the only real logic, TDD'd) drives the service worker's alarm; the SW reconciles on startup and on `chrome.storage.onChanged`. A dumb `options/render.ts` maps state→DOM and an `options/index.ts` controller auto-saves each change to the existing `storage/` layer. Vanilla TS+CSS, no framework. Spec: `docs/dev/specs/2026-06-08-phase7-options-design.md`.
 
 **Tech Stack:** TypeScript, Vite, Vitest. Reuses `storage/`, `management/`, the guardian SW.
 
@@ -51,9 +51,7 @@ Expected: OK.
 
 ```bash
 git add src/types.ts
-git commit -m "feat: add AlarmAction type for Phase 7 alarm reconciliation
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "feat: add AlarmAction type for Phase 7 alarm reconciliation"
 ```
 
 ---
@@ -145,9 +143,7 @@ Expected: PASS (6 tests).
 
 ```bash
 git add src/guardian/alarm.ts src/guardian/alarm.test.ts
-git commit -m "feat: pure reconcileAlarm (monitoring/cadence -> alarm action, 0.5min clamp)
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "feat: pure reconcileAlarm (monitoring/cadence -> alarm action, 0.5min clamp)"
 ```
 
 ---
@@ -248,9 +244,7 @@ Expected: `check-dist: OK`. Confirm the SW is still self-contained:
 
 ```bash
 git add src/background/index.ts
-git commit -m "feat: SW reconciles the scan alarm on startup + settings change
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "feat: SW reconciles the scan alarm on startup + settings change"
 ```
 
 ---
@@ -400,9 +394,7 @@ Expected: OK (`options/render.ts` now type-checked via the widened include; the 
 
 ```bash
 git add tsconfig.json options/render.ts options/options.css options/index.html
-git commit -m "feat: options view layer (dumb render, CSS, shell) + typecheck options/
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "feat: options view layer (dumb render, CSS, shell) + typecheck options/"
 ```
 
 ---
@@ -478,9 +470,7 @@ Expected: `real controller: true | stub gone: true`.
 
 ```bash
 git add options/index.ts
-git commit -m "feat: options controller (load, render, auto-save settings + ignore list)
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "feat: options controller (load, render, auto-save settings + ignore list)"
 ```
 
 ---

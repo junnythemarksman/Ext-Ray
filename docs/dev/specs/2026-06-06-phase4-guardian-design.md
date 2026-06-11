@@ -2,7 +2,6 @@
 
 - **Date:** 2026-06-06
 - **Status:** Approved design, pre-implementation
-- **Author:** Genaro Peque, Jr
 - **Elaborates:** main [design spec](2026-06-05-ext-ray-design.md) §5.4, §6, §8; [roadmap](../../ROADMAP.md) Phase 4 (incl. adopted C1/C2 and research corrections)
 
 ## 1. Summary

@@ -2,7 +2,6 @@
 
 - **Date:** 2026-06-05
 - **Status:** Approved design, pre-implementation
-- **Author:** Genaro Peque, Jr
 - **Type:** Browser extension (Chromium / Manifest V3), local-only
 
 ## 1. Summary

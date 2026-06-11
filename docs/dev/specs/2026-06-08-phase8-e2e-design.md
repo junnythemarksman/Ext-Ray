@@ -2,7 +2,6 @@
 
 - **Date:** 2026-06-08
 - **Status:** Approved design, pre-implementation
-- **Author:** Genaro Peque, Jr
 - **Elaborates:** main [design spec](2026-06-05-ext-ray-design.md) §9 (testing); [roadmap](../../ROADMAP.md) Phase 8 (load unpacked in a real browser, exercise every control, watch `console.error`/`pageerror`, screenshot on failure; clear deferred robustness cases a–e)
 
 ## 1. Summary

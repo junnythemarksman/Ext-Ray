@@ -1,10 +1,10 @@
 # Phase 4 — Background Guardian Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> Implement task-by-task; steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build the background guardian that turns Ext-Ray's pure engines + storage into a live monitor: on events/alarm it re-scans installed extensions, classifies the severity of changes, and raises one batched notification when something is noteworthy.
 
-**Architecture:** Approach A — a pure, unit-tested `guardian/` core (`evaluateScan` + `classifySeverity`) wrapped by a thin `chrome.*` service-worker. A thin `management/` edge supplies `getExtensions()`. All decision logic is pure (no I/O); the service worker is glue. See spec `docs/superpowers/specs/2026-06-06-phase4-guardian-design.md`.
+**Architecture:** Approach A — a pure, unit-tested `guardian/` core (`evaluateScan` + `classifySeverity`) wrapped by a thin `chrome.*` service-worker. A thin `management/` edge supplies `getExtensions()`. All decision logic is pure (no I/O); the service worker is glue. See spec `docs/dev/specs/2026-06-06-phase4-guardian-design.md`.
 
 **Tech Stack:** TypeScript (ESM), Vitest, `@types/chrome`. Reuses `scoring/`, `snapshot/`, `storage/`, `debug/`.
 
@@ -71,9 +71,7 @@ Expected: OK (no errors) — the new types are self-contained.
 
 ```bash
 git add src/types.ts
-git commit -m "feat: add Phase 4 guardian types (Severity, ScanInput, ScanResult)
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "feat: add Phase 4 guardian types (Severity, ScanInput, ScanResult)"
 ```
 
 ---
@@ -180,9 +178,7 @@ Expected: PASS (3 tests).
 
 ```bash
 git add src/management/management.ts src/management/management.test.ts
-git commit -m "feat: add chrome.management edge (getExtensions)
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "feat: add chrome.management edge (getExtensions)"
 ```
 
 ---
@@ -340,9 +336,7 @@ Expected: PASS (9 tests).
 
 ```bash
 git add src/guardian/guardian.ts src/guardian/guardian.test.ts
-git commit -m "feat: guardian severity classification (research-grounded table)
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "feat: guardian severity classification (research-grounded table)"
 ```
 
 ---
@@ -514,9 +508,7 @@ Expected: PASS (15 tests total in the file).
 
 ```bash
 git add src/guardian/guardian.ts src/guardian/guardian.test.ts
-git commit -m "feat: guardian evaluateScan (batched, severity-gated, first-run safe)
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "feat: guardian evaluateScan (batched, severity-gated, first-run safe)"
 ```
 
 ---
@@ -606,9 +598,7 @@ Expected: OK (no errors).
 
 ```bash
 git add src/background/index.ts
-git commit -m "feat: background guardian service worker (wiring + serialized scans)
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "feat: background guardian service worker (wiring + serialized scans)"
 ```
 
 ---

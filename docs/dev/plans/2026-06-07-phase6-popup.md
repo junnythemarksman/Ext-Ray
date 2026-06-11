@@ -1,10 +1,10 @@
 # Phase 6 — Popup Report UI Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> Implement task-by-task; steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build the popup on-demand audit — open → score every installed extension → show an A–F fleet grade, full cards for risky extensions (reasons + browser warnings + Disable/Remove) and compact rows for the benign many, with an honest-limits footer.
 
-**Architecture:** A pure `report/buildReport` (all logic: score, worst-first sort, risky/low partition) feeds a dumb `render` (data→DOM, no logic) driven by a thin `popup/index.ts` controller; three new `management` edge wrappers do the `chrome.*` actions. Vanilla TS + CSS, no framework. Spec: `docs/superpowers/specs/2026-06-07-phase6-popup-design.md`.
+**Architecture:** A pure `report/buildReport` (all logic: score, worst-first sort, risky/low partition) feeds a dumb `render` (data→DOM, no logic) driven by a thin `popup/index.ts` controller; three new `management` edge wrappers do the `chrome.*` actions. Vanilla TS + CSS, no framework. Spec: `docs/dev/specs/2026-06-07-phase6-popup-design.md`.
 
 **Tech Stack:** TypeScript, Vite (already configured), Vitest. Reuses `scoring/`, `management/`.
 
@@ -74,9 +74,7 @@ Expected: OK (no errors).
 
 ```bash
 git add src/types.ts
-git commit -m "feat: add Phase 6 popup view-model types
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "feat: add Phase 6 popup view-model types"
 ```
 
 ---
@@ -202,9 +200,7 @@ Expected: PASS (5 tests).
 
 ```bash
 git add src/report/report.ts src/report/report.test.ts
-git commit -m "feat: pure popup report builder (score, worst-first, risky/low partition)
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "feat: pure popup report builder (score, worst-first, risky/low partition)"
 ```
 
 ---
@@ -284,9 +280,7 @@ Expected: PASS (3 original getExtensions tests + 3 new = 6).
 
 ```bash
 git add src/management/management.ts src/management/management.test.ts
-git commit -m "feat: management edge actions (getPermissionWarningsById, setEnabled, uninstall)
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "feat: management edge actions (getPermissionWarningsById, setEnabled, uninstall)"
 ```
 
 ---
@@ -487,9 +481,7 @@ Expected: OK. (`render.ts` is now type-checked via the widened `include`; `index
 
 ```bash
 git add tsconfig.json popup/render.ts popup/popup.css popup/index.html
-git commit -m "feat: popup view layer (dumb render, CSS, shell) + typecheck popup/
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "feat: popup view layer (dumb render, CSS, shell) + typecheck popup/"
 ```
 
 ---
@@ -580,9 +572,7 @@ Expected: two-pass build succeeds and `check-dist: OK`. The popup now bundles `i
 
 ```bash
 git add popup/index.ts
-git commit -m "feat: popup controller (load, render, delegated actions, progressive warnings)
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "feat: popup controller (load, render, delegated actions, progressive warnings)"
 ```
 
 ---

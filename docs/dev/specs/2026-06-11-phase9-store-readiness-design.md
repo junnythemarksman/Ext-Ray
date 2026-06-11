@@ -2,7 +2,6 @@
 
 - **Date:** 2026-06-11
 - **Status:** Approved design, pre-implementation
-- **Author:** Genaro Peque, Jr
 - **Elaborates:** main [design spec](2026-06-05-ext-ray-design.md) §10 (naming & distribution); [roadmap](../../ROADMAP.md) Phase 9 (privacy policy + Limited Use disclosure, first-run screen pre-empting the `management` warning, USPTO trademark check)
 
 ## 1. Summary

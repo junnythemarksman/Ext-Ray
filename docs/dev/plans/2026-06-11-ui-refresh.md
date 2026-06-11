@@ -1,6 +1,6 @@
 # UI Refresh (Phase 9.5) Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> Implement task-by-task; steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Restyle popup/options/onboarding to the new brand language (navy + cyan tokens, SVG ring gauge with grade words, risk pills, real extension icons) with zero new deps/permissions and the existing e2e selector contract intact.
 
@@ -8,9 +8,8 @@
 
 **Tech Stack:** Vanilla TS/CSS (OKLCH + relative color syntax, Chrome 120+ baseline), existing Vite build, Vitest, Playwright.
 
-**Spec:** [docs/superpowers/specs/2026-06-11-ui-refresh-design.md](../specs/2026-06-11-ui-refresh-design.md)
+**Spec:** [docs/dev/specs/2026-06-11-ui-refresh-design.md](../specs/2026-06-11-ui-refresh-design.md)
 
-**Conventions for every commit:** trailer `Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>` (never AI attribution). Branch: `ui-refresh`.
 
 ---
 
@@ -100,9 +99,7 @@ Expected: file listed (publicDir copies `public/` wholesale).
 
 ```bash
 git add shared/tokens.css public/icons/ext-fallback.svg
-git commit -m "feat(ui): add OKLCH design tokens + extension-icon fallback asset
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "feat(ui): add OKLCH design tokens + extension-icon fallback asset"
 ```
 
 ---
@@ -202,9 +199,7 @@ Expected: tsc clean; all tests pass (86 prior + 6 pickBestIcon + 1 report = 93).
 
 ```bash
 git add src/types.ts src/management/management.ts src/management/management.test.ts src/report/report.ts src/report/report.test.ts
-git commit -m "feat(report): plumb best-fit extension icon URLs to the view-model (TDD)
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "feat(report): plumb best-fit extension icon URLs to the view-model (TDD)"
 ```
 
 ---
@@ -452,9 +447,7 @@ Expected: tsc clean; 93 unit green; popup spec now 7 passed (5 existing + 2 new)
 
 ```bash
 git add popup/render.ts popup/popup.css e2e/popup.spec.ts
-git commit -m "feat(popup): brand restyle — ring gauge, grade words, risk pills, extension icons
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "feat(popup): brand restyle — ring gauge, grade words, risk pills, extension icons"
 ```
 
 ---
@@ -506,9 +499,7 @@ Expected: 4 passed (incl. the 420px no-overflow test).
 
 ```bash
 git add options/options.css options/index.html
-git commit -m "style(options): token-based brand restyle
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "style(options): token-based brand restyle"
 ```
 
 ---
@@ -574,9 +565,7 @@ Expected: 1 passed (text/selector assertions unchanged).
 
 ```bash
 git add onboarding/onboarding.css onboarding/index.html
-git commit -m "style(onboarding): brand hero + check-circle points
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "style(onboarding): brand hero + check-circle points"
 ```
 
 ---
@@ -596,9 +585,7 @@ Expected: tsc clean · 93 unit · **16 e2e** (14 prior + 2 new popup) · check-d
 
 ```bash
 git add docs/ROADMAP.md README.md
-git commit -m "docs: record Phase 9.5 UI refresh
-
-Co-Authored-By: Rafael Santos <rafael.santos@tessera.dev>"
+git commit -m "docs: record Phase 9.5 UI refresh"
 ```
 
 - [ ] **Step 5:** Finish branch (final review → ff-merge `ui-refresh` → main → push), then regenerate `npm run shots`, copy to the desktop screenshots folder, and refresh the desktop ZIP + unpacked `ext-ray` folder.
