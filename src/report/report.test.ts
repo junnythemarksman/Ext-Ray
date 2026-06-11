@@ -109,3 +109,28 @@ describe('buildReport trusted partitioning', () => {
     expect(view.risky.length + view.low.length + view.trusted.length).toBe(3);
   });
 });
+
+describe('informational signals (signal pack)', () => {
+  it('threads signals onto risky cards, low rows, and trusted cards', () => {
+    const crit = ext({ id: 'c'.repeat(32), hostPermissions: ['<all_urls>'], updateUrl: 'https://u.example.com/c.xml' });
+    const low = ext({ id: 'l'.repeat(32), updateUrl: 'https://u.example.com/l.xml' });
+    const tr = ext({ id: 't'.repeat(32), enabled: false, disabledReason: 'permissions_increase' });
+    const r = buildReport([crit, low, tr], ['t'.repeat(32)]);
+    expect(r.risky[0]!.signals.some((s) => s.includes('outside the official extension store'))).toBe(true);
+    expect(r.risky[0]!.signals.some((s) => s.includes('same server (u.example.com)'))).toBe(true);
+    expect(r.low[0]!.signals.some((s) => s.includes('outside the official extension store'))).toBe(true);
+    expect(r.trusted[0]!.signals).toEqual(['Chrome disabled this extension: an update requested more permissions']);
+  });
+
+  it('signals never affect the grade', () => {
+    const plain = ext({ id: 'a'.repeat(32) });
+    const noted = ext({ id: 'b'.repeat(32), updateUrl: 'https://u.example.com/x.xml' });
+    const bare = ext({ id: 'b'.repeat(32) });
+    expect(buildReport([plain, noted]).grade).toEqual(buildReport([plain, bare]).grade);
+  });
+
+  it('defaults to an empty signals array', () => {
+    const r = buildReport([ext()]);
+    expect(r.low[0]!.signals).toEqual([]);
+  });
+});

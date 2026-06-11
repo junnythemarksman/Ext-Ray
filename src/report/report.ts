@@ -4,15 +4,18 @@
 // logic lives here so the render layer is a dumb data→DOM map.
 // Invariant: risky + low + trusted === total; all lists are worst-first
 // (score desc, name tiebreak); deterministic — no clock, no locale-sensitive compare.
+// Signals are informational and never affect tier/score/order.
 
 import type { ExtSnapshot, ReportView, ReportCard, ReportRow } from '../types';
 import { scoreExtension, gradeFleet } from '../scoring/scoring';
+import { fleetSignals } from '../signals/signals';
 
 // Locale-independent compare — keeps the sort deterministic across environments.
 const byName = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
 
 export function buildReport(snapshots: ExtSnapshot[], trusted: string[] = []): ReportView {
   const trustedSet = new Set(trusted);
+  const signals = fleetSignals(snapshots);
   const scored = snapshots.map((snapshot) => ({ snapshot, verdict: scoreExtension(snapshot) }));
 
   // Grade reflects only NON-trusted extensions (trusted are acknowledged + excluded).
@@ -27,6 +30,7 @@ export function buildReport(snapshots: ExtSnapshot[], trusted: string[] = []): R
     id: snapshot.id, name: snapshot.name, version: snapshot.version, tier: verdict.tier,
     score: verdict.score, reasons: verdict.reasons,
     enabled: snapshot.enabled, canDisable: snapshot.mayDisable, iconUrl: snapshot.iconUrl,
+    signals: signals.get(snapshot.id) ?? [],
   });
   for (const { snapshot, verdict } of scored) {
     if (trustedSet.has(snapshot.id)) { trustedCards.push(card(snapshot, verdict)); continue; }
@@ -34,7 +38,7 @@ export function buildReport(snapshots: ExtSnapshot[], trusted: string[] = []): R
       low.push({
         id: snapshot.id, name: snapshot.name, tier: verdict.tier,
         enabled: snapshot.enabled, canDisable: snapshot.mayDisable,
-        iconUrl: snapshot.iconUrl,
+        iconUrl: snapshot.iconUrl, signals: signals.get(snapshot.id) ?? [],
       });
     } else {
       risky.push(card(snapshot, verdict));

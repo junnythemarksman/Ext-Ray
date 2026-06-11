@@ -125,6 +125,8 @@ export interface ReportCard {
   enabled: boolean;
   canDisable: boolean; // = mayDisable
   iconUrl?: string;
+  /** Informational signals (signal-pack spec §4.5) — unscored context, never affects tier/score. */
+  signals: string[];
 }
 
 export interface ReportRow {
@@ -134,6 +136,8 @@ export interface ReportRow {
   enabled: boolean;
   canDisable: boolean;
   iconUrl?: string;
+  /** Informational signals (signal-pack spec §4.5) — unscored context, never affects tier/score. */
+  signals: string[];
 }
 
 export interface ReportView {
